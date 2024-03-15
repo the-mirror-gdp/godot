@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#if 0 // Disabled for The Mirror.
+
 #include "camera_feed.h"
 
 #include "servers/rendering_server.h"
@@ -252,3 +254,5 @@ bool CameraFeed::activate_feed() {
 void CameraFeed::deactivate_feed() {
 	// nothing to do here
 }
+
+#endif // Disabled for The Mirror.

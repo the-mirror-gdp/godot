@@ -20,6 +20,8 @@
 		<member name="application/app_category" type="String" setter="" getter="">
 			Application category for the App Store.
 		</member>
+		<member name="application/app_protocol" type="String" setter="" getter="">
+		</member>
 		<member name="application/bundle_identifier" type="String" setter="" getter="">
 			Unique application identifier in a reverse-DNS format, can only contain alphanumeric characters ([code]A-Z[/code], [code]a-z[/code], and [code]0-9[/code]), hyphens ([code]-[/code]), and periods ([code].[/code]).
 		</member>

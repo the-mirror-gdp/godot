@@ -450,6 +450,7 @@ void EditorExportPlatformMacOS::get_export_options(List<ExportOption> *r_options
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/short_version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/copyright"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/app_protocol"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::DICTIONARY, "application/copyright_localized", PROPERTY_HINT_LOCALIZABLE_STRING), Dictionary()));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_macos_version"), "10.12"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/export_angle", PROPERTY_HINT_ENUM, "Auto,Yes,No"), 0, true));
@@ -840,6 +841,20 @@ void EditorExportPlatformMacOS::_fix_plist(const Ref<EditorExportPreset> &p_pres
 			strnew += lines[i].replace("$xcodever", p_preset->get("xcode/xcode_version")) + "\n";
 		} else if (lines[i].contains("$xcodebuild")) {
 			strnew += lines[i].replace("$xcodebuild", p_preset->get("xcode/xcode_build")) + "\n";
+		} else if (lines[i].find("$registered_protocols") != -1) {
+			const String protocol = p_preset->get("application/app_protocol");
+			print_verbose("Exported app protocol name: " + protocol);
+			/* App must have a valid bundle ID for this to work properly on MacOS */
+			String bundle_id = p_preset->get("application/bundle_identifier");
+			if (!protocol.is_empty()) {
+				String s = "\t<key>CFBundleURLTypes</key>\n\t";
+				s += "<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLName</key>\n";
+				s += "\t\t\t<string>" + bundle_id + "</string>\n";
+				s += "\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n";
+				s += "\t\t\t\t<string>" + protocol + "</string>\n";
+				s += "\t\t\t</array>\n\t\t</dict>\n\t</array>\n";
+				strnew += lines[i].replace("$registered_protocols", s);
+			}
 		} else if (lines[i].contains("$usage_descriptions")) {
 			String descriptions;
 			if (!((String)p_preset->get("privacy/microphone_usage_description")).is_empty()) {

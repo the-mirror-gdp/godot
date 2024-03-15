@@ -153,7 +153,9 @@ static SteamTracker *steam_tracker = nullptr;
 
 // Initialized in setup2()
 static AudioServer *audio_server = nullptr;
+#if 0 // Disabled for The Mirror.
 static CameraServer *camera_server = nullptr;
+#endif // Disabled for The Mirror.
 static DisplayServer *display_server = nullptr;
 static RenderingServer *rendering_server = nullptr;
 static TextServerManager *tsman = nullptr;
@@ -3160,7 +3162,9 @@ Error Main::setup2() {
 
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Finalize Setup");
 
+#if 0 // Disabled for The Mirror.
 	camera_server = CameraServer::create();
+#endif // Disabled for The Mirror.
 
 	MAIN_PRINT("Main: Load Physics");
 
@@ -4310,9 +4314,11 @@ void Main::cleanup(bool p_force) {
 		memdelete(audio_server);
 	}
 
+#if 0 // Disabled for The Mirror.
 	if (camera_server) {
 		memdelete(camera_server);
 	}
+#endif // Disabled for The Mirror.
 
 	OS::get_singleton()->finalize();
 

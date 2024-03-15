@@ -144,7 +144,9 @@ static MessageQueue *message_queue = nullptr;
 static AudioServer *audio_server = nullptr;
 static DisplayServer *display_server = nullptr;
 static RenderingServer *rendering_server = nullptr;
+#if 0 // Disabled for The Mirror.
 static CameraServer *camera_server = nullptr;
+#endif // Disabled for The Mirror.
 static TextServerManager *tsman = nullptr;
 static PhysicsServer2DManager *physics_server_2d_manager = nullptr;
 static PhysicsServer2D *physics_server_2d = nullptr;
@@ -3080,7 +3082,9 @@ Error Main::setup2() {
 
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Finalize Setup");
 
+#if 0 // Disabled for The Mirror.
 	camera_server = CameraServer::create();
+#endif // Disabled for The Mirror.
 
 	MAIN_PRINT("Main: Load Physics");
 
@@ -4214,9 +4218,11 @@ void Main::cleanup(bool p_force) {
 		memdelete(audio_server);
 	}
 
+#if 0 // Disabled for The Mirror.
 	if (camera_server) {
 		memdelete(camera_server);
 	}
+#endif // Disabled for The Mirror.
 
 	OS::get_singleton()->finalize();
 

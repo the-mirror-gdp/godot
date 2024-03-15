@@ -195,7 +195,7 @@ def add_module_version_string(self, s):
 
 
 def get_version_info(module_version_string="", silent=False):
-    build_name = "custom_build"
+    build_name = "mirror"
     if os.getenv("BUILD_NAME") is not None:
         build_name = str(os.getenv("BUILD_NAME"))
         if not silent:

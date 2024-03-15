@@ -475,6 +475,30 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 #endif
 
 				} break;
+				// The Mirror: TARGET OBJECT.
+				case GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE: {
+					// The Mirror: Swap out this identifier for a SubscriptNode
+					// and parse that instead of the identifier.
+					ERR_PRINT("The Mirror: TARGET_OBJECT_VARIABLE encountered at the compiler level. This should have been handled at the analyzer level. The compiler will attempt to handle this anyway, but it only works in some cases. Please investigate why this was not handled by the analyzer. For users reading this message: Check if your GDScript code is valid, and if so, please attach the GDScript code when reporting a bug to The Mirror.");
+					const GDScriptParser::ClassNode *class_node = codegen.class_node;
+					if (class_node && class_node->has_member(SNAME("target_object"))) {
+						GDScriptParser::ClassNode::Member member = class_node->get_member(SNAME("target_object"));
+						GDScriptParser::IdentifierNode *base_identifier = memnew(GDScriptParser::IdentifierNode);
+						base_identifier->name = "target_object";
+						base_identifier->source = GDScriptParser::IdentifierNode::Source::MEMBER_VARIABLE;
+						base_identifier->variable_source = member.variable;
+						GDScriptParser::IdentifierNode *var_name_identifier = memnew(GDScriptParser::IdentifierNode);
+						const GDScriptParser::IdentifierNode *exp_id = static_cast<const GDScriptParser::IdentifierNode *>(p_expression);
+						var_name_identifier->name = exp_id->name;
+						var_name_identifier->source = GDScriptParser::IdentifierNode::Source::MEMBER_VARIABLE;
+						var_name_identifier->variable_source = exp_id->variable_source;
+						GDScriptParser::SubscriptNode *subscript_node = memnew(GDScriptParser::SubscriptNode);
+						subscript_node->base = base_identifier;
+						subscript_node->attribute = var_name_identifier;
+						subscript_node->is_attribute = true;
+						return _parse_expression(codegen, r_error, subscript_node);
+					}
+				} break;
 			}
 
 			// Not found, error.

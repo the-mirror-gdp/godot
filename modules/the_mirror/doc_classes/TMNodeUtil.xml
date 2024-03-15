@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMNodeUtil" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror node utility functions.
+	</brief_description>
+	<description>
+		The Mirror's utility functions for working with nodes and subnodes.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_all_descendants" qualifiers="static">
+			<return type="Node[]" />
+			<param index="0" name="node" type="Node" />
+			<description>
+				Returns an array of all descendants of a node. This includes children, grandchildren, etc.
+			</description>
+		</method>
+		<method name="get_local_aabb_of_descendants" qualifiers="static">
+			<return type="AABB" />
+			<param index="0" name="node" type="Node3D" />
+			<description>
+				Returns the local AABB of all descendants of a 3D node relative to the node. This is the combined AABB of the node's descendants. This method only checks for [Sprite3D], [GeometryInstance3D], and [CollisionShape3D] nodes.
+			</description>
+		</method>
+		<method name="get_local_bottom_point" qualifiers="static">
+			<return type="Vector3" />
+			<param index="0" name="node" type="Node3D" />
+			<description>
+				Returns the local bottom point of the local AABB of a node's descendants. See [method get_local_aabb_of_descendants].
+			</description>
+		</method>
+		<method name="get_relative_node_path_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="ancestor" type="Node" />
+			<param index="1" name="descendant" type="Node" />
+			<description>
+				Returns the relative node path between the [param ancestor] and [param descendant]. The caller should check that [param ancestor] is actually an ancestor of [param descendant].
+			</description>
+		</method>
+		<method name="get_relative_transform" qualifiers="static">
+			<return type="Transform3D" />
+			<param index="0" name="ancestor" type="Node3D" />
+			<param index="1" name="descendant" type="Node3D" />
+			<description>
+				Returns the relative transform between the [param ancestor] and [param descendant]. The caller should check that [param ancestor] is actually an ancestor of [param descendant].
+			</description>
+		</method>
+		<method name="get_unique_child_name" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="parent" type="Node" />
+			<param index="1" name="child_name" type="String" />
+			<description>
+				Returns a unique child name that is similar to the [param child_name]. For example, if given "Timer" but parent has "Timer" already, try "Timer2".
+			</description>
+		</method>
+		<method name="recursive_find_nodes_by_meta" qualifiers="static">
+			<return type="Node[]" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="meta_key" type="StringName" />
+			<description>
+				Recusrively searches descendant nodes of [param start_node] for nodes with the metadata key [param meta_key]. This performs a depth-first search.
+			</description>
+		</method>
+		<method name="recursive_find_nodes_by_type" qualifiers="static">
+			<return type="Node[]" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="type_object" type="Object" />
+			<description>
+				Recusrively searches descendant nodes of [param start_node] for nodes with a type matching [param type_object]. This method works with GDScript types and inheriting types (ex: Node3D will match a MeshInstance3D node). This performs a depth-first search.
+			</description>
+		</method>
+		<method name="recursive_find_nodes_by_type_string" qualifiers="static">
+			<return type="Node[]" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="type_string" type="StringName" />
+			<description>
+				Recursively searches descendant nodes of [param start_node] for a node with a type matching [param type_string]. This method uses [method Object.get_class] so it only works with exact matches with native types, not GDScript types or inheriting types (ex: "Node3D" will not match a MeshInstance3D node). This performs a depth-first search. Returns null if no node was found.
+			</description>
+		</method>
+		<method name="recursive_get_node_by_meta" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="meta_key" type="StringName" />
+			<description>
+				Recursively searches descendant nodes of [param start_node] for a node with the metadata key [param meta_key]. This performs a depth-first search. Returns null if no node was found.
+			</description>
+		</method>
+		<method name="recursive_get_node_by_name" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="string_name" type="StringName" />
+			<description>
+				Recursively searches descendant nodes of [param start_node] for a node with a name matching [param string_name]. This performs a depth-first search. Returns null if no node was found.
+			</description>
+		</method>
+		<method name="recursive_get_node_by_type" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="type_object" type="Object" />
+			<description>
+				Recursively searches descendant nodes of [param start_node] for a node with a type matching [param type_object]. This method works with both native and GDScript types. This also works with inheriting types, ex: Node3D will match a MeshInstance3D node. This performs a depth-first search. Returns null if no node was found.
+			</description>
+		</method>
+		<method name="recursive_get_node_by_type_string" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="start_node" type="Node" />
+			<param index="1" name="type_string" type="String" />
+			<description>
+				Recursively searches descendant nodes of [param start_node] for a node with a type matching [param type_string]. This method only works with native types, not GDScript types. This also works with inheriting types, ex: "Node3D" will match a MeshInstance3D node. This performs a depth-first search. Returns null if no node was found.
+			</description>
+		</method>
+	</methods>
+</class>

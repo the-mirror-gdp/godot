@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMAudioPlayer3D" inherits="AudioStreamPlayer3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror wrapper class for Godot's [AudioStreamPlayer3D] node.
+	</brief_description>
+	<description>
+		TMAudioPlayer3D supplies additional functionality over Godot's [AudioStreamPlayer3D] node. Specifically:
+		- This node can play audio either spatially (3D) or globally (0D).
+		- This node can loop any audio stream (must provide a non-looping [AudioStream]).
+		- This node can set the volume of the audio stream in a linear percentage (on a range of 0.0 to 100.0).
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="setup_audio">
+			<return type="void" />
+			<param index="0" name="audio_stream" type="AudioStream" />
+			<description>
+				Sets the audio stream, and plays it if [member AudioStreamPlayer3D.autoplay] is enabled. The audio stream should not be looped.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="base_volume_percentage" type="float" setter="set_base_volume_percentage" getter="get_base_volume_percentage" default="100.0">
+			The volume, measured in a linear percentage. This is a wrapper around [member AudioStreamPlayer3D.volume_db]. For spatial audio, this is the volume when 10 meters away from the audio player.
+		</member>
+		<member name="is_spatial" type="bool" setter="set_is_spatial" getter="get_is_spatial" default="true">
+			If [code]true[/code], this node plays audio in 3D space, using the range and max volume settings, and being directional.
+			If [code]false[/code], this node plays audio globally. The range and max volume settings will be ignored, and the audio will be directionless.
+		</member>
+		<member name="loop_audio" type="bool" setter="set_loop_audio" getter="get_loop_audio" default="false">
+			If [code]true[/code], this node will loop the audio it is playing. This setting only works when the [AudioStream] is not set to loop.
+		</member>
+		<member name="spatial_max_volume_percentage" type="float" setter="set_spatial_max_volume_percentage" getter="get_spatial_max_volume_percentage" default="150.0">
+			When [member is_spatial] is true, this is the maximum volume the audio is allowed to get. This is a wrapper around [member AudioStreamPlayer3D.max_db], but will preserve the setting regardless of the current state of [member is_spatial].
+		</member>
+		<member name="spatial_range" type="float" setter="set_spatial_range" getter="get_spatial_range" default="0.0">
+			When [member is_spatial] is true, the audio can be heard within this range. The range is measured in meters. This is a wrapper around [member AudioStreamPlayer3D.max_distance], but will preserve the setting regardless of the current state of [member is_spatial].
+		</member>
+	</members>
+</class>

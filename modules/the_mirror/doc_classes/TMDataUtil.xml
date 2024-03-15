@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMDataUtil" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror data structure utility functions.
+	</brief_description>
+	<description>
+		The Mirror's utility functions for data structures such as JSON, Dictionaries, and Arrays.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_parent_data_structure_for_json_path" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path" type="PackedStringArray" />
+			<param index="2" name="create_missing" type="bool" />
+			<description>
+				Returns the parent data structure for a given JSON path. For example, for [code]"foo/bar/baz"[/code], the parent data structure is a Dictionary at [code]"foo/bar"[/code]. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				If [param create_missing] is [code]true[/code] then any missing intermediate data structures will be created. The type of data structure created depends on the next name in the path. This option only has an effect when the existing data structure is null or undefined.
+				For example, with [param create_missing] set to [code]true[/code], getting the data structure for [code]"foo/bar/baz"[/code] will create a Dictionary at [code]"foo/bar"[/code], and getting the data structure for [code]"foo/bar/0"[/code] will create an Array at [code]"foo/bar"[/code] of size 1. This ensures that the desired key or index can be set.
+			</description>
+		</method>
+		<method name="get_variable_by_json_path" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path" type="PackedStringArray" />
+			<param index="2" name="create_missing" type="bool" default="false" />
+			<description>
+				Gets the value of a variable in a data structure using a JSON path. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will get a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure].
+				If [param create_missing] is [code]true[/code] then any missing intermediate data structures will be created. See [method get_parent_data_structure_for_json_path] for more details.
+				If [param create_missing] is [code]false[/code] and the variable does not exist, then a signaling null is returned. Due to a bug, this is discarded when passing to GDScript.
+			</description>
+		</method>
+		<method name="get_variable_by_json_path_string" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path_string" type="String" />
+			<param index="2" name="create_missing" type="bool" default="false" />
+			<description>
+				Gets the value of a variable in a data structure using a JSON path. This is a wrapper for [method get_variable_by_json_path] that takes a [String] instead of a [PackedStringArray]. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will get a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure].
+				If [param create_missing] is [code]true[/code] then any missing intermediate data structures will be created. See [method get_parent_data_structure_for_json_path] for more details.
+				If [param create_missing] is [code]false[/code] and the variable does not exist, then a signaling null is returned. Due to a bug, this is discarded when passing to GDScript.
+			</description>
+		</method>
+		<method name="has_variable_by_json_path" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path" type="PackedStringArray" />
+			<description>
+				Check if a variable exists in a data structure using a JSON path. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will check for a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure].
+			</description>
+		</method>
+		<method name="has_variable_by_json_path_string" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path_string" type="String" />
+			<description>
+				Check if a variable exists in a data structure using a JSON path. This is a wrapper for [method get_variable_by_json_path] that takes a [String] instead of a [PackedStringArray]. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will check for a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure].
+			</description>
+		</method>
+		<method name="match_depth_json_path" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="signal_path" type="PackedStringArray" />
+			<param index="1" name="listen_path" type="PackedStringArray" />
+			<description>
+				Compares [param signal_path] to [param listen_path] and returns the depth that [param listen_path] has over [param signal_path], or [code]-1[/code] if they are not a match.
+				For example [code]("a/b", "a/b")[/code] returns [code]0[/code], [code]("a/b", "a/b/c")[/code] returns [code]1[/code], [code]("a/b", "a/b/c/d")[/code] returns [code]2[/code], and so on.
+				If not a match, meaning [param signal_path] is not a subset of [param listen_path], then [code]-1[/code] is returned, for example [code]("a/b", "a/c")[/code] returns [code]-1[/code], as do [code]("a", "b")[/code], [code]("a/b/c", "a/b")[/code], and [code]("a/b/c", "a")[/code].
+			</description>
+		</method>
+		<method name="set_variable_by_json_path" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path" type="PackedStringArray" />
+			<param index="2" name="value" type="Variant" />
+			<param index="3" name="create_missing" type="bool" default="true" />
+			<description>
+				Sets the value of a variable in a data structure using a JSON path. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will set a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure].
+				If [param create_missing] is [code]true[/code] then any missing intermediate data structures will be created.
+			</description>
+		</method>
+		<method name="set_variable_by_json_path_string" qualifiers="static">
+			<return type="void" />
+			<param index="0" name="data_structure" type="Variant" />
+			<param index="1" name="json_path_string" type="String" />
+			<param index="2" name="value" type="Variant" />
+			<param index="3" name="create_missing" type="bool" default="true" />
+			<description>
+				Sets the value of a variable in a data structure using a JSON path. This is a wrapper for [method set_variable_by_json_path] that takes a [String] instead of a [PackedStringArray]. The [param data_structure] parameter must be either a [Dictionary] or an [Array].
+				For example, [code]"a/b"[/code] will set a value named [code]"b"[/code] inside of a Dictionary [code]"a"[/code] which is inside of [param data_structure]. Tokens are separated by either [code]/[/code] or [code].[/code] characters. Integers are used as array indices, all other names are used as dictionary keys.
+				If [param create_missing] is [code]true[/code] then any missing intermediate data structures will be created.
+			</description>
+		</method>
+		<method name="split_json_path_string" qualifiers="static">
+			<return type="PackedStringArray" />
+			<param index="0" name="json_path_string" type="String" />
+			<description>
+				Splits a JSON path string into a PackedStringArray. For example [code]"foo/bar/baz"[/code] or [code]"foo.bar.baz"[/code] becomes [code]["foo", "bar", "baz"][/code].
+				Either [code]/[/code] or [code].[/code] characters can be used as separators. Leading, trailing, and duplicate separators are ignored, for example [code]"//foo/bar////baz//////"[/code] will still parse to [code]["foo", "bar", "baz"][/code]. Key names cannot be escaped and cannot contain either [code]/[/code] or [code].[/code] characters. JSON paths cannot go "up" like is possible with node paths or folder paths (ex: [code]cd ..[/code] in the terminal).
+			</description>
+		</method>
+	</methods>
+</class>

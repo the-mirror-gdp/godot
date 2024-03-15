@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMFileUtil" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror file utility functions.
+	</brief_description>
+	<description>
+		The Mirror's utility functions for files.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clean_string_for_file_path" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="input" type="String" />
+			<description>
+				Removes or replaces invalid characters in the input string to make it suitable for using as a file path. [code]"$%&amp;'*:;&lt;=&gt;?~[/code] characters will be deleted, and [code]./@\|[/code] will be replaced with [code]_[/code].
+			</description>
+		</method>
+		<method name="convert_gltf_files_to_glb_data" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Converts a GLTF document (including all its external dependencies) to a GLB byte array. GLTF files can have dependencies on other files. This would make distribution very complex. In order to resolve this, we can convert the GLTF to GLB data at runtime to pack it into one file.
+			</description>
+		</method>
+		<method name="convert_image_bytes_to_texture" qualifiers="static">
+			<return type="ImageTexture" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<param index="1" name="format" type="String" />
+			<description>
+				Converts a byte array of image data to an [ImageTexture]. The [param format] parameter is the file extension of the image. Supported formats are [code]"webp"[/code], [code]"png"[/code], and [code]"jpg"[/code].
+			</description>
+		</method>
+		<method name="get_exr_data" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="texture" type="Texture2D" />
+			<description>
+				Converts the given [param texture] Texture2D to a [PackedByteArray] in the EXR image format.
+			</description>
+		</method>
+		<method name="get_exr_data_at_path" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads the image with any supported format at the given [param path] and returns it as a [PackedByteArray] in the EXR image format.
+			</description>
+		</method>
+		<method name="get_webp_data" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="texture" type="Texture2D" />
+			<description>
+				Converts the given [param texture] Texture2D to a [PackedByteArray] in the WebP image format.
+			</description>
+		</method>
+		<method name="get_webp_data_at_path" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads the image with any supported format at the given [param path] and returns it as a [PackedByteArray] in the WebP image format.
+			</description>
+		</method>
+		<method name="load_audio" qualifiers="static">
+			<return type="AudioStream" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads an audio file from the disk. The audio can be in WAV, MP3, or Ogg Vorbis format.
+			</description>
+		</method>
+		<method name="load_file_bytes" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads the raw bytes of the file at the given path.
+			</description>
+		</method>
+		<method name="load_gltf_file_as_node" qualifiers="static">
+			<return type="Node" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="discard_textures" type="bool" />
+			<description>
+				Loads a GLTF file from the disk as a node object. Returns null if the file could not be loaded.
+			</description>
+		</method>
+		<method name="load_image" qualifiers="static">
+			<return type="ImageTexture" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads an image file from the disk. The image must be in one of the format supported by [method convert_image_bytes_to_texture].
+			</description>
+		</method>
+		<method name="load_json_file" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Loads a JSON file from the disk and returns the resulting Variant. The file will be loaded as text and processed using [method parse_json_from_string].
+			</description>
+		</method>
+		<method name="parse_json_from_string" qualifiers="static">
+			<return type="Variant" />
+			<param index="0" name="json_text_string" type="String" />
+			<description>
+				Parses the given [param json_text_string] as JSON and returns the resulting Variant. The return value will usually be a [Dictionary] but it can also be an [Array], or null if the string could not be parsed.
+			</description>
+		</method>
+	</methods>
+</class>

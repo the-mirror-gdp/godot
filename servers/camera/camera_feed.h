@@ -31,6 +31,8 @@
 #ifndef CAMERA_FEED_H
 #define CAMERA_FEED_H
 
+#if 0 // Disabled for The Mirror.
+
 #include "core/io/image.h"
 #include "core/math/transform_2d.h"
 #include "servers/camera_server.h"
@@ -108,5 +110,7 @@ public:
 
 VARIANT_ENUM_CAST(CameraFeed::FeedDataType);
 VARIANT_ENUM_CAST(CameraFeed::FeedPosition);
+
+#endif // Disabled for The Mirror.
 
 #endif // CAMERA_FEED_H

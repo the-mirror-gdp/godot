@@ -925,7 +925,9 @@ void register_scene_types() {
 	GDREGISTER_CLASS(GradientTexture1D);
 	GDREGISTER_CLASS(GradientTexture2D);
 	GDREGISTER_CLASS(AnimatedTexture);
+#if 0 // Disabled for The Mirror.
 	GDREGISTER_CLASS(CameraTexture);
+#endif // Disabled for The Mirror.
 	GDREGISTER_VIRTUAL_CLASS(TextureLayered);
 	GDREGISTER_ABSTRACT_CLASS(ImageTextureLayered);
 	GDREGISTER_VIRTUAL_CLASS(Texture3D);

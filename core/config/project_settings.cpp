@@ -96,6 +96,9 @@ const PackedStringArray ProjectSettings::_get_supported_features() {
 	features.append(VERSION_BRANCH "." _MKSTR(VERSION_PATCH));
 	features.append(VERSION_FULL_CONFIG);
 	features.append(VERSION_FULL_BUILD);
+	features.append(VERSION_BUILD);
+	features.append(VERSION_HASH);
+	features.append(String(VERSION_HASH).left(8));
 
 #ifdef RD_ENABLED
 	features.append("Forward Plus");

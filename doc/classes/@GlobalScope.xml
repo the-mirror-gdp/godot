@@ -1647,6 +1647,15 @@
 		<member name="ResourceUID" type="ResourceUID" setter="" getter="">
 			The [ResourceUID] singleton.
 		</member>
+		<member name="TMDataUtil" type="TMDataUtil" setter="" getter="">
+			The [TMDataUtil] singleton, for accessing data by JSON paths.
+		</member>
+		<member name="TMFileUtil" type="TMFileUtil" setter="" getter="">
+			The [TMFileUtil] singleton, for dynamically loading files of various types.
+		</member>
+		<member name="TMNodeUtil" type="TMNodeUtil" setter="" getter="">
+			The [TMNodeUtil] singleton, for working with descendant nodes.
+		</member>
 		<member name="TextServerManager" type="TextServerManager" setter="" getter="">
 			The [TextServerManager] singleton.
 		</member>

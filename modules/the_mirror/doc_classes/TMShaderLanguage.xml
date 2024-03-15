@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMShaderLanguage" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror shader language validator.
+	</brief_description>
+	<description>
+		The Mirror's shader language validator, built on Godot's internal ShaderLanguage class. This class is used to validate that shader code compiles before it is given to Godot, allowing for dynamic user-provided shaders at runtime.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="compile_spatial" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="code" type="String" />
+			<description>
+				Compiles the given [param code]. If an error was found, an error message will be returned. If no error was found, an empty string will be returned.
+			</description>
+		</method>
+	</methods>
+</class>

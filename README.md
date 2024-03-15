@@ -1,12 +1,13 @@
 # The Mirror's fork of Godot Engine
 
-This repo is a fork of Godot Engine, designed for The Mirror.
+This repo is a fork of Godot Engine, designed for The Mirror, a Roblox & UEFN alternative giving you the freedom to own what you create: an all-in-one game development platform.
+
 It includes several features submitted upstream as pull requests, and
 some features specific to The Mirror that are not suitable upstream.
 
 Here is a highlight of some of the included features:
 
-- `modules/app_protocol` adds support for protocols and IPC (inter-process communication), such as clicking on a link in a web browser to open your Godot application.
+- `modules/app_protocol` adds support for protocols and IPC (inter-process communication) for deep linking, such as clicking on a link in a web browser to open your Godot application.
 - `modules/godot_tracy` adds support for the Tracy profiler via AndreaCatania's [godot_tracy](https://github.com/AndreaCatania/godot_tracy) module.
 - `modules/jolt` adds a custom Jolt implementation completely separate from Godot's built-in physics. This includes a general-purpose `JBody3D` node type that replaces all `CollisionObject3D`-derived node types. The GLTF module has been modified to support importing GLTF physics as these new nodes (on by default, can be disabled with one line of code change).
 - `modules/network_synchronizer` adds support for network synchronization via AndreaCatania's [network_synchronizer](https://github.com/GameNetworking/network_synchronizer) module.
@@ -29,7 +30,7 @@ Here is a highlight of some of the included features:
 - A "Signaling Null" feature was added to Variant, allowing a single return value to contain an extra flag when null. This is used by `TMDataUtil`. Note: Signaling nulls are flattened to regular nulls when passed to GDScript, this is not intentional and we are not sure why it happens.
 - All webcam-related classes, including `CameraFeed`, `CameraServer`, `CameraTexture`, and the `modules/camera` folder, are disabled because they were causing crashes in The Mirror.
 
-## What is Godot Engine
+## What is Godot Engine?
 
 **[Godot Engine](https://godotengine.org) is a feature-packed, cross-platform
 game engine to create 2D and 3D games from a unified interface.** It provides a
@@ -82,6 +83,8 @@ for compilation instructions for every supported platform.
 
 ## Community and contributing
 
+**Chat: Join The Mirror's Discord: https://discord.com/invite/CK6fH3Cynk**
+
 If you believe your contribution would benefit all Godot users, prefer to
 submit it to the upstream first. This is usually in the form of an issue,
 proposal, or pull request. You can chat with Godot users on various community
@@ -93,7 +96,7 @@ see the [Godot contributing guide](CONTRIBUTING.md).
 This document also includes guidelines for reporting bugs.
 
 If you believe your contribution is specific to The Mirror, or is otherwise
-more niche, you can submit it here, as an issue or pull request.
+more niche, you can submit it here as an issue or pull request.
 Ideally, any contribution submitted to The Mirror's fork of Godot should
 either be useful to The Mirror or other games similar to The Mirror,
 meaning real-time 3D games with dynamic content. For example, enhancements
@@ -106,6 +109,8 @@ try to review all open pull requests before performing any force-pushing.
 After merge, the exact commit hash of your PR will not be preserved.
 
 ## Documentation
+
+The Mirror's docs are in its monorepo: https://github.com/the-mirror-gdp/the-mirror and deployed to its docs site, https://docs.themirror.space. Feel free to contribute there via pull request.
 
 The Mirror's engine-level features are documented in the class reference.
 There may be some gaps in the documentation, as we are still working on it.

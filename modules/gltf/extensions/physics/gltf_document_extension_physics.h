@@ -38,12 +38,21 @@
 class GLTFDocumentExtensionPhysics : public GLTFDocumentExtension {
 	GDCLASS(GLTFDocumentExtensionPhysics, GLTFDocumentExtension);
 
+	String _import_node_type = "TheMirrorJolt";
+
+protected:
+	static void _bind_methods();
+
 public:
 	// Import process.
 	Error import_preflight(Ref<GLTFState> p_state, Vector<String> p_extensions) override;
 	Vector<String> get_supported_extensions() override;
 	Error parse_node_extensions(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Dictionary &p_extensions) override;
 	Node3D *generate_scene_node(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent) override;
+	Node3D *generate_scene_node_godot(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent);
+	Node3D *generate_scene_node_the_mirror_jolt(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent);
+	String get_import_node_type() const;
+	void set_import_node_type(const String &p_import_node_type);
 	// Export process.
 	void convert_scene_node(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_node) override;
 	Error export_node(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Dictionary &r_node_json, Node *p_scene_node) override;

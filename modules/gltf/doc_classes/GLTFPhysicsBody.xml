@@ -11,11 +11,25 @@
 		<link title="OMI_physics_body GLTF extension">https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/OMI_physics_body</link>
 	</tutorials>
 	<methods>
+		<method name="apply_to_jbody" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="jbody" type="JBody3D" />
+			<description>
+				Applies the properties of this GLTFPhysicsBody instance to the given The Mirror Jolt [JBody3D] node. This is useful when needing to apply both body and shape properties by first creating the JBody3D node using [method GLTFPhysicsShape.to_jbody] and then using this method.
+			</description>
+		</method>
 		<method name="from_dictionary" qualifiers="static">
 			<return type="GLTFPhysicsBody" />
 			<param index="0" name="dictionary" type="Dictionary" />
 			<description>
 				Creates a new GLTFPhysicsBody instance by parsing the given [Dictionary] in the [code]OMI_physics_body[/code] GLTF extension format.
+			</description>
+		</method>
+		<method name="from_jbody" qualifiers="static">
+			<return type="GLTFPhysicsBody" />
+			<param index="0" name="jbody" type="JBody3D" />
+			<description>
+				Creates a new GLTFPhysicsBody instance from the given The Mirror Jolt [JBody3D] node.
 			</description>
 		</method>
 		<method name="from_node" qualifiers="static">
@@ -29,6 +43,12 @@
 			<return type="Dictionary" />
 			<description>
 				Serializes this GLTFPhysicsBody instance into a [Dictionary]. It will be in the format expected by the [code]OMI_physics_body[/code] GLTF extension.
+			</description>
+		</method>
+		<method name="to_jbody">
+			<return type="JBody3D" />
+			<description>
+				Converts this GLTFPhysicsBody instance into a The Mirror Jolt [JBody3D] node.
 			</description>
 		</method>
 		<method name="to_node" qualifiers="const">

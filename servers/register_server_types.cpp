@@ -167,7 +167,10 @@ void register_server_types() {
 
 	GDREGISTER_CLASS(NativeMenu);
 
+#if 0 // Disabled for The Mirror.
 	GDREGISTER_CLASS(CameraServer);
+	GDREGISTER_CLASS(CameraFeed);
+#endif // Disabled for The Mirror.
 
 	GDREGISTER_ABSTRACT_CLASS(RenderingDevice);
 
@@ -258,8 +261,6 @@ void register_server_types() {
 
 	GDREGISTER_CLASS(FramebufferCacheRD);
 	GDREGISTER_CLASS(UniformSetCacheRD);
-
-	GDREGISTER_CLASS(CameraFeed);
 
 	GDREGISTER_VIRTUAL_CLASS(MovieWriter);
 
@@ -367,7 +368,9 @@ void register_server_singletons() {
 	OS::get_singleton()->benchmark_begin_measure("Servers", "Register Singletons");
 
 	Engine::get_singleton()->add_singleton(Engine::Singleton("AudioServer", AudioServer::get_singleton(), "AudioServer"));
+#if 0 // Disabled for The Mirror.
 	Engine::get_singleton()->add_singleton(Engine::Singleton("CameraServer", CameraServer::get_singleton(), "CameraServer"));
+#endif // Disabled for The Mirror.
 	Engine::get_singleton()->add_singleton(Engine::Singleton("DisplayServer", DisplayServer::get_singleton(), "DisplayServer"));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("NativeMenu", NativeMenu::get_singleton(), "NativeMenu"));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationServer2D", NavigationServer2D::get_singleton(), "NavigationServer2D"));

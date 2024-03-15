@@ -31,6 +31,8 @@
 #ifndef CAMERA_SERVER_H
 #define CAMERA_SERVER_H
 
+#if 0 // Disabled for The Mirror.
+
 #include "core/object/class_db.h"
 #include "core/object/ref_counted.h"
 #include "core/os/thread_safe.h"
@@ -112,5 +114,7 @@ public:
 };
 
 VARIANT_ENUM_CAST(CameraServer::FeedImage);
+
+#endif // Disabled for The Mirror.
 
 #endif // CAMERA_SERVER_H

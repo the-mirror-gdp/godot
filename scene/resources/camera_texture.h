@@ -31,6 +31,8 @@
 #ifndef CAMERA_TEXTURE_H
 #define CAMERA_TEXTURE_H
 
+#if 0 // Disabled for The Mirror.
+
 #include "scene/resources/texture.h"
 
 class CameraTexture : public Texture2D {
@@ -64,5 +66,7 @@ public:
 	CameraTexture();
 	~CameraTexture();
 };
+
+#endif // Disabled for The Mirror.
 
 #endif // CAMERA_TEXTURE_H

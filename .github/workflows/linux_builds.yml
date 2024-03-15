@@ -197,11 +197,11 @@ jobs:
           ${{ matrix.bin }} --doctool --headless 2>&1 > /dev/null || true
           git diff --color --exit-code && ! git ls-files --others --exclude-standard | sed -e 's/^/New doc file missing in PR: /' | grep 'xml$'
 
-      # Check API backwards compatibility
-      - name: Check for GDExtension compatibility
-        if: ${{ matrix.api-compat }}
-        run: |
-          ./misc/scripts/validate_extension_api.sh "${{ matrix.bin }}"
+      ## Check API backwards compatibility
+      #- name: Check for GDExtension compatibility
+      #  if: ${{ matrix.api-compat }}
+      #  run: |
+      #    ./misc/scripts/validate_extension_api.sh "${{ matrix.bin }}"
 
       # Download and run the test project
       - name: Test Godot project

@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#if 0 // Disabled for The Mirror.
+
 #include "camera_server.h"
 #include "core/variant/typed_array.h"
 #include "rendering_server.h"
@@ -166,3 +168,5 @@ CameraServer::CameraServer() {
 CameraServer::~CameraServer() {
 	singleton = nullptr;
 };
+
+#endif // Disabled for The Mirror.

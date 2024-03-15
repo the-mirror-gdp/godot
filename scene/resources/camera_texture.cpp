@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#if 0 // Disabled for The Mirror.
+
 #include "camera_texture.h"
 
 #include "servers/camera/camera_feed.h"
@@ -129,3 +131,5 @@ CameraTexture::~CameraTexture() {
 		RenderingServer::get_singleton()->free(_texture);
 	}
 }
+
+#endif // Disabled for The Mirror.

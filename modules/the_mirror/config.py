@@ -13,6 +13,8 @@ def get_doc_classes():
         "TMFileUtil",
         "TMNodeUtil",
         "TMShaderLanguage",
+        "TMUserGDScript",
+        "TMUserGDScriptSyntaxHighlighter",
     ]
 
 

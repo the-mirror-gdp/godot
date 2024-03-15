@@ -31,6 +31,7 @@
 #include "godot_application_delegate.h"
 
 #include "display_server_macos.h"
+#include "modules/app_protocol/app_protocol.h"
 #include "native_menu_macos.h"
 #include "os_macos.h"
 
@@ -141,7 +142,7 @@
 	self = [super init];
 
 	NSAppleEventManager *aem = [NSAppleEventManager sharedAppleEventManager];
-	[aem setEventHandler:self andSelector:@selector(handleAppleEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
+	[aem setEventHandler:self andSelector:@selector(handleAppleEvent:onAppUrlEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 	[aem setEventHandler:self andSelector:@selector(handleAppleEvent:withReplyEvent:) forEventClass:kCoreEventClass andEventID:kAEOpenDocuments];
 
 	return self;
@@ -159,12 +160,6 @@
 	}
 
 	List<String> args;
-	if (([event eventClass] == kInternetEventClass) && ([event eventID] == kAEGetURL)) {
-		// Opening URL scheme.
-		NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
-		args.push_back(vformat("--uri=\"%s\"", String::utf8([url UTF8String])));
-	}
-
 	if (([event eventClass] == kCoreEventClass) && ([event eventID] == kAEOpenDocuments)) {
 		// Opening file association.
 		NSAppleEventDescriptor *files = [event paramDescriptorForKeyword:keyDirectObject];
@@ -185,6 +180,31 @@
 			// Application is just started, add to the list of command line arguments and continue.
 			os->set_cmdline_platform_args(args);
 		}
+	}
+}
+
+- (void)handleAppleEvent:(NSAppleEventDescriptor *)event onAppUrlEvent:(NSAppleEventDescriptor *)replyEvent {
+	OS_MacOS *os = (OS_MacOS *)OS::get_singleton();
+	if (!event || !os) {
+		return;
+	}
+
+	List<String> args;
+	if (([event eventClass] == kInternetEventClass) && ([event eventID] == kAEGetURL)) {
+		// Opening URL scheme.
+		NSString *url = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
+		args.push_back(vformat("--uri %s", String::utf8([url UTF8String])));
+	}
+
+	const String &str = args.size() > 0 ? args.get(0) : "no arguments";
+	if (str == "no arguments") {
+		return;
+	}
+
+	if (AppProtocol::is_server_running_locally()) {
+		AppProtocol::on_server_get_message(str.ascii().get_data(), str.ascii().length());
+	} else {
+		os->set_cmdline_platform_args(args);
 	}
 }
 

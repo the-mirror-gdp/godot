@@ -42,12 +42,20 @@
 #include "scene/resources/3d/importer_mesh.h"
 #include "scene/resources/3d/sphere_shape_3d.h"
 
+#include "modules/jolt/j_body_3d.h"
+
 void GLTFPhysicsShape::_bind_methods() {
 	ClassDB::bind_static_method("GLTFPhysicsShape", D_METHOD("from_node", "shape_node"), &GLTFPhysicsShape::from_node);
 	ClassDB::bind_method(D_METHOD("to_node", "cache_shapes"), &GLTFPhysicsShape::to_node, DEFVAL(false));
 
 	ClassDB::bind_static_method("GLTFPhysicsShape", D_METHOD("from_resource", "shape_resource"), &GLTFPhysicsShape::from_resource);
 	ClassDB::bind_method(D_METHOD("to_resource", "cache_shapes"), &GLTFPhysicsShape::to_resource, DEFVAL(false));
+
+	ClassDB::bind_static_method("GLTFPhysicsShape", D_METHOD("from_jbody", "jbody"), &GLTFPhysicsShape::from_jbody);
+	ClassDB::bind_method(D_METHOD("to_jbody"), &GLTFPhysicsShape::to_jbody);
+
+	ClassDB::bind_static_method("GLTFPhysicsShape", D_METHOD("from_jshape", "jshape"), &GLTFPhysicsShape::from_jshape);
+	ClassDB::bind_method(D_METHOD("to_jshape"), &GLTFPhysicsShape::to_jshape);
 
 	ClassDB::bind_static_method("GLTFPhysicsShape", D_METHOD("from_dictionary", "dictionary"), &GLTFPhysicsShape::from_dictionary);
 	ClassDB::bind_method(D_METHOD("to_dictionary"), &GLTFPhysicsShape::to_dictionary);
@@ -265,6 +273,116 @@ Ref<Shape3D> GLTFPhysicsShape::to_resource(bool p_cache_shapes) {
 		}
 	}
 	return _shape_cache;
+}
+
+Ref<GLTFPhysicsShape> GLTFPhysicsShape::from_jbody(const JBody3D *p_jbody) {
+	ERR_FAIL_NULL_V_MSG(p_jbody, Ref<GLTFPhysicsShape>(), "Tried to create a GLTFPhysicsShape from a JBody3D node, but the given node was null.");
+	Ref<JShape3D> shape_resource = p_jbody->get_shape();
+	ERR_FAIL_COND_V_MSG(shape_resource.is_null(), Ref<GLTFPhysicsShape>(), "Tried to create a GLTFPhysicsShape from a JBody3D node, but the given node had a null shape.");
+	Ref<GLTFPhysicsShape> gltf_shape = from_jshape(shape_resource);
+	gltf_shape->set_is_trigger(p_jbody->is_sensor());
+	return gltf_shape;
+}
+
+JBody3D *GLTFPhysicsShape::to_jbody() const {
+	JBody3D *jbody = memnew(JBody3D);
+	if (is_trigger) {
+		jbody->set_body_mode(JBody3D::BodyMode::SENSOR);
+		jbody->set_layer_name("TRIGGER");
+	} else {
+		jbody->set_body_mode(JBody3D::BodyMode::STATIC);
+		jbody->set_layer_name("STATIC");
+	}
+	jbody->set_allow_sleeping(false);
+	jbody->set_shape(to_jshape());
+	jbody->set_meta(SNAME("imported_jbody_mode"), jbody->get_body_mode());
+	return jbody;
+}
+
+Ref<GLTFPhysicsShape> GLTFPhysicsShape::from_jshape(const Ref<JShape3D> p_jshape) {
+	Ref<GLTFPhysicsShape> gltf_shape;
+	gltf_shape.instantiate();
+	ERR_FAIL_COND_V_MSG(p_jshape.is_null(), gltf_shape, "Tried to create a GLTFPhysicsShape from a JShape3D resource, but the given shape was null.");
+	if (cast_to<JBoxShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "box";
+		Ref<JBoxShape3D> box = p_jshape;
+		gltf_shape->set_size(box->get_size());
+	} else if (cast_to<const JSphereShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "sphere";
+		Ref<JSphereShape3D> sphere = p_jshape;
+		gltf_shape->set_radius(sphere->get_radius());
+	} else if (cast_to<const JCapsuleShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "capsule";
+		Ref<JCapsuleShape3D> capsule = p_jshape;
+		gltf_shape->set_radius(capsule->get_radius());
+		gltf_shape->set_height(capsule->get_height());
+	} else if (cast_to<const JCylinderShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "cylinder";
+		Ref<JCylinderShape3D> cylinder = p_jshape;
+		gltf_shape->set_radius(cylinder->get_radius());
+		gltf_shape->set_height(cylinder->get_height());
+	} else if (cast_to<const JConvexHullShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "convex";
+		Ref<JConvexHullShape3D> convex = p_jshape;
+		Vector<Vector3> hull_points = convex->get_points();
+		Ref<ImporterMesh> importer_mesh = _convert_hull_points_to_mesh(hull_points);
+		gltf_shape->set_importer_mesh(importer_mesh);
+	} else if (cast_to<const JMeshShape3D>(p_jshape.ptr())) {
+		gltf_shape->shape_type = "trimesh";
+		Ref<JMeshShape3D> trimesh = p_jshape;
+		Ref<ImporterMesh> importer_mesh;
+		importer_mesh.instantiate();
+		Array surface_array;
+		surface_array.resize(Mesh::ArrayType::ARRAY_MAX);
+		surface_array[Mesh::ArrayType::ARRAY_VERTEX] = trimesh->get_faces();
+		importer_mesh->add_surface(Mesh::PRIMITIVE_TRIANGLES, surface_array);
+		gltf_shape->set_importer_mesh(importer_mesh);
+	} else {
+		ERR_PRINT("Tried to create a GLTFPhysicsShape from a JShape3D resource, but the given node's shape '" + String(Variant(p_jshape)) +
+				"' had an unsupported shape type. Only JBoxShape3D, JSphereShape3D, JCapsuleShape3D, JCylinderShape3D, JConvexHullShape3D, and JMeshShape3D are supported.");
+	}
+	return gltf_shape;
+}
+
+Ref<JShape3D> GLTFPhysicsShape::to_jshape() const {
+	if (shape_type == "box") {
+		Ref<JBoxShape3D> box;
+		box.instantiate();
+		box->set_size(size);
+		return box;
+	} else if (shape_type == "sphere") {
+		Ref<JSphereShape3D> sphere;
+		sphere.instantiate();
+		sphere->set_radius(radius);
+		return sphere;
+	} else if (shape_type == "capsule") {
+		Ref<JCapsuleShape3D> capsule;
+		capsule.instantiate();
+		capsule->set_radius(radius);
+		capsule->set_height(height);
+		return capsule;
+	} else if (shape_type == "cylinder") {
+		Ref<JCylinderShape3D> cylinder;
+		cylinder.instantiate();
+		cylinder->set_radius(radius);
+		cylinder->set_height(height);
+		return cylinder;
+	} else if (shape_type == "convex") {
+		Ref<JConvexHullShape3D> convex;
+		convex.instantiate();
+		ERR_FAIL_COND_V_MSG(importer_mesh.is_null(), convex, "GLTFPhysicsShape: Error converting convex hull shape to a JConvexHullShape3D: The mesh resource is null.");
+		Ref<ConvexPolygonShape3D> godot_convex = importer_mesh->get_mesh()->create_convex_shape();
+		convex->set_points(godot_convex->get_points());
+		return convex;
+	} else if (shape_type == "trimesh") {
+		Ref<JMeshShape3D> trimesh;
+		trimesh.instantiate();
+		ERR_FAIL_COND_V_MSG(importer_mesh.is_null(), trimesh, "GLTFPhysicsShape: Error converting convex hull shape to a JMeshShape3D: The mesh resource is null.");
+		Ref<ConcavePolygonShape3D> godot_trimesh = importer_mesh->create_trimesh_shape();
+		trimesh->set_faces(godot_trimesh->get_faces());
+		return trimesh;
+	}
+	ERR_FAIL_V_MSG(Ref<JShape3D>(), "GLTFPhysicsShape: Error converting to a JBody3D: Shape type '" + shape_type + "' is unknown.");
 }
 
 Ref<GLTFPhysicsShape> GLTFPhysicsShape::from_dictionary(const Dictionary p_dictionary) {

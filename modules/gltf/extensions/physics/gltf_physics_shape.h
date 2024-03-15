@@ -35,6 +35,9 @@
 
 #include "scene/3d/physics/collision_shape_3d.h"
 
+class JBody3D;
+class JShape3D;
+
 class ImporterMesh;
 
 // GLTFPhysicsShape is an intermediary between Godot's collision shape nodes
@@ -85,6 +88,12 @@ public:
 
 	static Ref<GLTFPhysicsShape> from_resource(const Ref<Shape3D> &p_shape_resource);
 	Ref<Shape3D> to_resource(bool p_cache_shapes = false);
+
+	static Ref<GLTFPhysicsShape> from_jbody(const JBody3D *p_jbody);
+	JBody3D *to_jbody() const;
+
+	static Ref<GLTFPhysicsShape> from_jshape(const Ref<JShape3D> p_jshape);
+	Ref<JShape3D> to_jshape() const;
 
 	static Ref<GLTFPhysicsShape> from_dictionary(const Dictionary p_dictionary);
 	Dictionary to_dictionary() const;

@@ -33,6 +33,15 @@
 #include "scene/3d/physics/area_3d.h"
 #include "scene/3d/physics/static_body_3d.h"
 
+#include "modules/jolt/j_body_3d.h"
+
+void GLTFDocumentExtensionPhysics::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_import_node_type"), &GLTFDocumentExtensionPhysics::get_import_node_type);
+	ClassDB::bind_method(D_METHOD("set_import_node_type", "import_node_type"), &GLTFDocumentExtensionPhysics::set_import_node_type);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "import_node_type", PROPERTY_HINT_ENUM, "Godot,TheMirrorJolt"), "set_import_node_type", "get_import_node_type");
+}
+
 // Import process.
 Error GLTFDocumentExtensionPhysics::import_preflight(Ref<GLTFState> p_state, Vector<String> p_extensions) {
 	if (!p_extensions.has("OMI_collider") && !p_extensions.has("OMI_physics_body") && !p_extensions.has("OMI_physics_shape")) {
@@ -203,6 +212,21 @@ CollisionObject3D *_get_ancestor_collision_object(Node *p_scene_parent) {
 	return nullptr;
 }
 
+JBody3D *_get_ancestor_jbody_node(Node *p_scene_parent) {
+	while (p_scene_parent) {
+		Node3D *parent_3d = Object::cast_to<Node3D>(p_scene_parent);
+		if (unlikely(!parent_3d)) {
+			return nullptr;
+		}
+		JBody3D *jbody = Object::cast_to<JBody3D>(p_scene_parent);
+		if (likely(jbody)) {
+			return jbody;
+		}
+		p_scene_parent = p_scene_parent->get_parent();
+	}
+	return nullptr;
+}
+
 Node3D *_generate_shape_node_and_body_if_needed(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Ref<GLTFPhysicsShape> p_physics_shape, CollisionObject3D *p_col_object, bool p_is_trigger) {
 	// If we need to generate a body node, do so.
 	CollisionObject3D *body_node = nullptr;
@@ -259,7 +283,68 @@ Array _get_ancestor_compound_trigger_nodes(Ref<GLTFState> p_state, TypedArray<GL
 	return ret;
 }
 
+Transform3D _get_transform_to_ancestor_node(const Node3D *p_ancestor, const Node3D *p_parent, const Ref<GLTFNode> p_child) {
+	Transform3D transform = p_child->get_xform();
+	const Node3D *current_node = p_parent;
+	while (current_node && current_node != p_ancestor) {
+		transform = current_node->get_transform() * transform;
+		current_node = Object::cast_to<Node3D>(current_node->get_parent());
+	}
+	return transform;
+}
+
+void _attach_compound_shape_to_jbody(JBody3D *p_jbody, Ref<GLTFPhysicsShape> p_shape, const Transform3D &p_transform) {
+	Ref<JShape3D> current_shape = p_jbody->get_shape();
+	Ref<JCompoundShape3D> compound_shape = current_shape;
+	if (compound_shape.is_valid()) {
+		compound_shape->add_shape(p_shape->to_jshape(), p_transform);
+		return;
+	}
+	compound_shape.instantiate();
+	if (current_shape.is_valid()) {
+		compound_shape->add_shape(current_shape, Transform3D());
+	}
+	compound_shape->add_shape(p_shape->to_jshape(), p_transform);
+	p_jbody->set_shape(compound_shape);
+}
+
+JBody3D *_attach_shape_to_jbody_or_create_jbody(Ref<GLTFPhysicsShape> p_shape, JBody3D *p_ancestor_body, Node *p_parent_node, JBody3D *p_current_node, Ref<GLTFNode> p_gltf_node, bool p_triggerness) {
+	if (p_current_node) {
+		bool trigger_match = p_current_node->is_sensor() == p_triggerness;
+		if (trigger_match) {
+			p_current_node->set_shape(p_shape->to_jshape());
+		} else {
+			JBody3D *child_shape = p_shape->to_jbody();
+			p_current_node->add_child(child_shape);
+		}
+		return p_current_node;
+	} else if (p_ancestor_body) {
+		bool trigger_match = p_ancestor_body->is_sensor() == p_triggerness;
+		if (trigger_match) {
+			const Transform3D transform_to_ancestor = _get_transform_to_ancestor_node(p_ancestor_body, Object::cast_to<Node3D>(p_parent_node), p_gltf_node);
+			const bool has_no_transform = transform_to_ancestor == Transform3D();
+			if (has_no_transform && p_ancestor_body->get_shape().is_null()) {
+				p_ancestor_body->set_shape(p_shape->to_jshape());
+			} else {
+				_attach_compound_shape_to_jbody(p_ancestor_body, p_shape, transform_to_ancestor);
+			}
+			return nullptr;
+		} else {
+			return p_shape->to_jbody();
+		}
+	}
+	return p_shape->to_jbody();
+}
+
 Node3D *GLTFDocumentExtensionPhysics::generate_scene_node(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent) {
+	if (_import_node_type == "TheMirrorJolt") {
+		return generate_scene_node_the_mirror_jolt(p_state, p_gltf_node, p_scene_parent);
+	}
+	// Else _import_node_type == "Godot" (or fallback)
+	return generate_scene_node_godot(p_state, p_gltf_node, p_scene_parent);
+}
+
+Node3D *GLTFDocumentExtensionPhysics::generate_scene_node_godot(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent) {
 	Ref<GLTFPhysicsBody> gltf_physics_body = p_gltf_node->get_additional_data(StringName("GLTFPhysicsBody"));
 #ifndef DISABLE_DEPRECATED
 	// This deprecated code handles OMI_collider (which we internally name "GLTFPhysicsShape").
@@ -337,6 +422,50 @@ Node3D *GLTFDocumentExtensionPhysics::generate_scene_node(Ref<GLTFState> p_state
 	return ret;
 }
 
+Node3D *GLTFDocumentExtensionPhysics::generate_scene_node_the_mirror_jolt(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Node *p_scene_parent) {
+	JBody3D *ancestor_body = _get_ancestor_jbody_node(p_scene_parent);
+	JBody3D *ret = nullptr;
+	Ref<GLTFPhysicsBody> gltf_physics_body = p_gltf_node->get_additional_data(StringName("GLTFPhysicsBody"));
+	if (gltf_physics_body.is_valid()) {
+		ancestor_body = gltf_physics_body->to_jbody();
+		ret = ancestor_body;
+	}
+#ifndef DISABLE_DEPRECATED
+	// This deprecated code handles OMI_collider (which we internally name "GLTFPhysicsShape").
+	Ref<GLTFPhysicsShape> gltf_physics_shape = p_gltf_node->get_additional_data(StringName("GLTFPhysicsShape"));
+	if (gltf_physics_shape.is_valid()) {
+		_setup_shape_mesh_resource_from_index_if_needed(p_state, gltf_physics_shape);
+		ret = _attach_shape_to_jbody_or_create_jbody(gltf_physics_shape, ancestor_body, p_scene_parent, ret, p_gltf_node, gltf_physics_shape->get_is_trigger());
+	}
+#endif // DISABLE_DEPRECATED
+	Ref<GLTFPhysicsShape> gltf_physics_collider_shape = p_gltf_node->get_additional_data(StringName("GLTFPhysicsColliderShape"));
+	if (gltf_physics_collider_shape.is_valid()) {
+		_setup_shape_mesh_resource_from_index_if_needed(p_state, gltf_physics_collider_shape);
+		ret = _attach_shape_to_jbody_or_create_jbody(gltf_physics_collider_shape, ancestor_body, p_scene_parent, ret, p_gltf_node, false);
+	}
+	Ref<GLTFPhysicsShape> gltf_physics_trigger_shape = p_gltf_node->get_additional_data(StringName("GLTFPhysicsTriggerShape"));
+	if (gltf_physics_trigger_shape.is_valid()) {
+		gltf_physics_trigger_shape->set_is_trigger(true);
+		_setup_shape_mesh_resource_from_index_if_needed(p_state, gltf_physics_trigger_shape);
+		ret = _attach_shape_to_jbody_or_create_jbody(gltf_physics_trigger_shape, ancestor_body, p_scene_parent, ret, p_gltf_node, true);
+	}
+	if (ret) {
+		Ref<JShape3D> jshape = ret->get_shape();
+		if (jshape.is_valid()) {
+			jshape->make_shape();
+		}
+	}
+	return ret;
+}
+
+String GLTFDocumentExtensionPhysics::get_import_node_type() const {
+	return _import_node_type;
+}
+
+void GLTFDocumentExtensionPhysics::set_import_node_type(const String &p_import_node_type) {
+	_import_node_type = p_import_node_type;
+}
+
 // Export process.
 bool _are_all_faces_equal(const Vector<Face3> &p_a, const Vector<Face3> &p_b) {
 	if (p_a.size() != p_b.size()) {
@@ -403,6 +532,26 @@ void GLTFDocumentExtensionPhysics::convert_scene_node(Ref<GLTFState> p_state, Re
 			compound_trigger_nodes.push_back(double(self_index));
 		} else {
 			p_gltf_node->set_additional_data(StringName("GLTFPhysicsColliderShape"), gltf_shape);
+		}
+	} else if (cast_to<JBody3D>(p_scene_node)) {
+		JBody3D *jbody = Object::cast_to<JBody3D>(p_scene_node);
+		Ref<GLTFPhysicsBody> gltf_body = GLTFPhysicsBody::from_jbody(jbody);
+		Ref<GLTFPhysicsShape> gltf_shape = GLTFPhysicsShape::from_jbody(jbody);
+		{
+			Ref<ImporterMesh> importer_mesh = gltf_shape->get_importer_mesh();
+			if (importer_mesh.is_valid()) {
+				gltf_shape->set_mesh_index(_get_or_insert_mesh_in_state(p_state, importer_mesh));
+			}
+		}
+		if (jbody->get_shape().is_null()) {
+			p_gltf_node->set_additional_data(StringName("GLTFPhysicsBody"), gltf_body);
+		} else if (jbody->is_sensor()) {
+			p_gltf_node->set_additional_data(StringName("GLTFPhysicsTriggerShape"), gltf_shape);
+		} else {
+			p_gltf_node->set_additional_data(StringName("GLTFPhysicsColliderShape"), gltf_shape);
+			if (jbody->is_dynamic() || jbody->is_kinematic()) {
+				p_gltf_node->set_additional_data(StringName("GLTFPhysicsBody"), gltf_body);
+			}
 		}
 	} else if (cast_to<CollisionObject3D>(p_scene_node)) {
 		CollisionObject3D *godot_body = Object::cast_to<CollisionObject3D>(p_scene_node);

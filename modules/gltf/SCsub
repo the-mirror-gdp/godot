@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 Import("env")
 Import("env_modules")
 
@@ -19,6 +21,11 @@ if env["module_vorbis_enabled"]:
     env_modules.Prepend(CPPPATH=[thirdparty_dir])
     if env["builtin_libogg"]:
         env_modules.Prepend(CPPPATH=["#thirdparty/libogg"])
+
+# Inter-module compile dependency: Include Jolt from GLTF.
+# This allows GLTF in The Mirror's engine fork to use our Jolt implementation.
+jolt_module_path = os.path.abspath(os.path.join(os.getcwd(), "..", "jolt"))
+env_modules.Prepend(CPPPATH=[os.path.join(jolt_module_path, "thirdparty", "JoltPhysics")])
 
 env_gltf = env_modules.Clone()
 

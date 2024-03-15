@@ -36,9 +36,16 @@
 #include "scene/3d/physics/static_body_3d.h"
 #include "scene/3d/physics/vehicle_body_3d.h"
 
+#include "modules/jolt/j_body_3d.h"
+#include "modules/jolt/j_utils.h"
+
 void GLTFPhysicsBody::_bind_methods() {
 	ClassDB::bind_static_method("GLTFPhysicsBody", D_METHOD("from_node", "body_node"), &GLTFPhysicsBody::from_node);
 	ClassDB::bind_method(D_METHOD("to_node"), &GLTFPhysicsBody::to_node);
+
+	ClassDB::bind_static_method("GLTFPhysicsBody", D_METHOD("from_jbody", "jbody"), &GLTFPhysicsBody::from_jbody);
+	ClassDB::bind_method(D_METHOD("to_jbody"), &GLTFPhysicsBody::to_jbody);
+	ClassDB::bind_method(D_METHOD("apply_to_jbody", "jbody"), &GLTFPhysicsBody::apply_to_jbody);
 
 	ClassDB::bind_static_method("GLTFPhysicsBody", D_METHOD("from_dictionary", "dictionary"), &GLTFPhysicsBody::from_dictionary);
 	ClassDB::bind_method(D_METHOD("to_dictionary"), &GLTFPhysicsBody::to_dictionary);
@@ -251,6 +258,62 @@ CollisionObject3D *GLTFPhysicsBody::to_node() const {
 	// Unreachable, the switch cases handle all values the enum can take.
 	// Omitting this works on Clang but not GCC or MSVC. If reached, it's UB.
 	return nullptr;
+}
+
+Ref<GLTFPhysicsBody> GLTFPhysicsBody::from_jbody(const JBody3D *p_jbody) {
+	Ref<GLTFPhysicsBody> physics_body;
+	physics_body.instantiate();
+	ERR_FAIL_COND_V_MSG(!p_jbody, physics_body, "Tried to create a GLTFPhysicsBody from a JBody3D node, but the given node was null.");
+	switch (p_jbody->get_body_mode()) {
+		case JBody3D::BodyMode::KINEMATIC: {
+			physics_body->body_type = PhysicsBodyType::ANIMATABLE;
+		} break;
+		case JBody3D::BodyMode::DYNAMIC: {
+			physics_body->body_type = PhysicsBodyType::RIGID;
+		} break;
+		case JBody3D::BodyMode::STATIC: {
+			physics_body->body_type = PhysicsBodyType::STATIC;
+		} break;
+		case JBody3D::BodyMode::SENSOR:
+		case JBody3D::BodyMode::SENSOR_ONLY_ACTIVE: {
+			physics_body->body_type = PhysicsBodyType::TRIGGER;
+		} break;
+	}
+	return physics_body;
+}
+
+JBody3D *GLTFPhysicsBody::to_jbody() {
+	JBody3D *jbody = memnew(JBody3D);
+	jbody->set_allow_sleeping(false);
+	apply_to_jbody(jbody);
+	return jbody;
+}
+
+void GLTFPhysicsBody::apply_to_jbody(JBody3D *p_jbody) const {
+	switch (body_type) {
+		case PhysicsBodyType::CHARACTER:
+		case PhysicsBodyType::ANIMATABLE: {
+			p_jbody->set_body_mode(JBody3D::BodyMode::KINEMATIC);
+			p_jbody->set_layer_name("KINEMATIC");
+		} break;
+		case PhysicsBodyType::RIGID:
+		case PhysicsBodyType::VEHICLE: {
+			p_jbody->set_body_mode(JBody3D::BodyMode::DYNAMIC);
+			p_jbody->set_layer_name("DYNAMIC");
+		} break;
+		case PhysicsBodyType::STATIC: {
+			p_jbody->set_body_mode(JBody3D::BodyMode::STATIC);
+			p_jbody->set_layer_name("STATIC");
+		} break;
+		case PhysicsBodyType::TRIGGER: {
+			p_jbody->set_body_mode(JBody3D::BodyMode::SENSOR);
+			p_jbody->set_layer_name("TRIGGER");
+		} break;
+	}
+	p_jbody->set_meta(SNAME("imported_jbody_mode"), p_jbody->get_body_mode());
+	p_jbody->set_mass(mass);
+	p_jbody->set_linear_velocity(convert(linear_velocity));
+	p_jbody->set_angular_velocity(convert(angular_velocity));
 }
 
 Ref<GLTFPhysicsBody> GLTFPhysicsBody::from_dictionary(const Dictionary p_dictionary) {

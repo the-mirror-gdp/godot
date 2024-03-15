@@ -19,6 +19,20 @@
 				Creates a new GLTFPhysicsShape instance by parsing the given [Dictionary].
 			</description>
 		</method>
+		<method name="from_jbody" qualifiers="static">
+			<return type="GLTFPhysicsShape" />
+			<param index="0" name="jbody" type="JBody3D" />
+			<description>
+				Creates a new GLTFPhysicsShape instance from the given The Mirror Jolt [JBody3D] node.
+			</description>
+		</method>
+		<method name="from_jshape" qualifiers="static">
+			<return type="GLTFPhysicsShape" />
+			<param index="0" name="jshape" type="JShape3D" />
+			<description>
+				Creates a new GLTFPhysicsShape instance from the given The Mirror Jolt [JShape3D] resource.
+			</description>
+		</method>
 		<method name="from_node" qualifiers="static">
 			<return type="GLTFPhysicsShape" />
 			<param index="0" name="shape_node" type="CollisionShape3D" />
@@ -30,6 +44,18 @@
 			<return type="Dictionary" />
 			<description>
 				Serializes this GLTFPhysicsShape instance into a [Dictionary] in the format defined by [code]OMI_physics_shape[/code].
+			</description>
+		</method>
+		<method name="to_jbody" qualifiers="const">
+			<return type="JBody3D" />
+			<description>
+				Converts this GLTFPhysicsShape instance into a The Mirror Jolt [JBody3D] node.
+			</description>
+		</method>
+		<method name="to_jshape" qualifiers="const">
+			<return type="JShape3D" />
+			<description>
+				Converts this GLTFPhysicsShape instance into a The Mirror Jolt [JShape3D] resource, which can be assigned to a [JBody3D] node. This can be used together with the [method GLTFPhysicsBody.to_jbody] method to create a body and then give it a shape.
 			</description>
 		</method>
 		<method name="to_node">

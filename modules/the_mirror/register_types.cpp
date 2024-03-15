@@ -1,6 +1,8 @@
 #include "register_types.h"
 
 #include "script/tm_shader_language.h"
+#include "script/tm_user_gdscript.h"
+#include "script/tm_user_gdscript_highlighter.h"
 #include "tm_audio_player_3d.h"
 #include "util/tm_data_util.h"
 #include "util/tm_file_util.h"
@@ -18,6 +20,8 @@ void initialize_the_mirror_module(ModuleInitializationLevel p_level) {
 	} else if (p_level == ModuleInitializationLevel::MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		GDREGISTER_CLASS(TMAudioPlayer3D);
 		GDREGISTER_CLASS(TMShaderLanguage);
+		GDREGISTER_CLASS(TMUserGDScript);
+		GDREGISTER_CLASS(TMUserGDScriptSyntaxHighlighter);
 	}
 }
 

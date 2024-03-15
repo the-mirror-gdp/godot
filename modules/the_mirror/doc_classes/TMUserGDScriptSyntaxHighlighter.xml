@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMUserGDScriptSyntaxHighlighter" inherits="SyntaxHighlighter" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		GDScript syntax highlighter usable in projects.
+	</brief_description>
+	<description>
+		This class has similar code to Godot's internal GDScriptSyntaxHighlighter class, but GDScriptSyntaxHighlighter is an editor-only class. TMUserGDScriptSyntaxHighlighter is usable in projects, it is meant to be used for highlighting GDScript code in a [CodeEdit] or [TextEdit]. It is intended to be used with [TMUserGDScript] to provide syntax highlighting for dynamic user scripts at runtime.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

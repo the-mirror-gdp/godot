@@ -61,10 +61,16 @@ public:
 class GDScript : public Script {
 	GDCLASS(GDScript, Script);
 	bool tool = false;
-	bool valid = false;
-	bool reloading = false;
 	bool _is_abstract = false;
 
+protected:
+	// The Mirror: Some private members were changed to be protected
+	// so that they could be accessed by the TMUserGDScript class.
+	bool valid = false;
+	bool reloading = false;
+	RBSet<Object *> instances;
+
+private:
 	struct MemberInfo {
 		int index = 0;
 		StringName setter;
@@ -169,13 +175,11 @@ private:
 	GDScriptFunction *implicit_ready = nullptr;
 	GDScriptFunction *static_initializer = nullptr;
 
-	Error _static_init();
 #ifdef TOOLS_ENABLED
 	void _static_default_init(); // Initialize static variables with default values based on their types.
 #endif
 
 	int subclass_count = 0;
-	RBSet<Object *> instances;
 	bool destructing = false;
 	bool clearing = false;
 	//exported members
@@ -221,6 +225,7 @@ private:
 	void _collect_dependencies(RBSet<GDScript *> &p_dependencies, const GDScript *p_except);
 
 protected:
+	Error _static_init();
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	bool _set(const StringName &p_name, const Variant &p_value);
 	void _get_property_list(List<PropertyInfo> *p_properties) const;
@@ -305,6 +310,8 @@ public:
 
 	virtual void set_path(const String &p_path, bool p_take_over = false) override;
 	String get_script_path() const;
+	// The Mirror: Expose a setter for the path for use by TMUserGDScript.
+	void set_script_path(const String &p_script_path) { path = p_script_path; }
 	Error load_source_code(const String &p_path);
 
 	void set_binary_tokens_source(const Vector<uint8_t> &p_binary_tokens);

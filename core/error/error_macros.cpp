@@ -34,6 +34,11 @@
 #include "core/os/os.h"
 #include "core/string/ustring.h"
 
+// Limit stack length - prevents huge performance penalty on windows
+#ifdef _WIN32
+#define MAX_STACK_LENGTH_WINDOWS 8
+#endif // _WIN32
+
 #if defined(MACOS_ENABLED) || defined(X11_ENABLED)
 #include <execinfo.h>
 #elif defined(WINDOWS_ENABLED)
@@ -107,6 +112,7 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 	}
 
 	_global_unlock();
+	print_stack_trace(2);
 }
 
 // Errors with message. (All combinations of p_error and p_message as String or char*.)
@@ -137,6 +143,15 @@ void _err_flush_stdout() {
 	fflush(stdout);
 }
 
+/* Prevents crashing during engine shutdown */
+void safe_print(const char *p_str, const char *p_message = nullptr) {
+	if (OS::get_singleton()) {
+		OS::get_singleton()->print(p_str, p_message);
+	} else {
+		printf(p_str, p_message);
+	}
+}
+
 void print_stack_trace(int p_skip_called, int p_skip_callers) {
 	// On an optimized build of Godot, stack trace printing will not work as
 	// expected (the compiler can inline methods), so it is not supported.
@@ -150,7 +165,7 @@ void print_stack_trace(int p_skip_called, int p_skip_callers) {
 	char **strs = backtrace_symbols(callstack, frames);
 	// Print out the desired stack trace frames.
 	for (int i = p_skip_called; i < frames - p_skip_callers; i++) {
-		OS::get_singleton()->print("%s\n", strs[i]);
+		safe_print("%s\n", strs[i]);
 	}
 	free(strs);
 #elif defined(WINDOWS_ENABLED)
@@ -178,12 +193,20 @@ void print_stack_trace(int p_skip_called, int p_skip_callers) {
 	frame.AddrStack.Mode = AddrModeFlat;
 #if defined(_M_X64)
 	frame.AddrPC.Offset = context.Rip;
-	frame.AddrFrame.Offset = context.Rbp;
 	frame.AddrStack.Offset = context.Rsp;
+	frame.AddrFrame.Offset = context.Rbp;
 #elif defined(_M_IX86)
 	frame.AddrPC.Offset = context.Eip;
-	frame.AddrFrame.Offset = context.Ebp;
 	frame.AddrStack.Offset = context.Esp;
+	frame.AddrFrame.Offset = context.Ebp;
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
+	frame.AddrPC.Offset = context.Pc;
+	frame.AddrStack.Offset = context.Sp;
+	frame.AddrFrame.Offset = context.Fp;
+#elif defined(_M_ARM)
+	frame.AddrPC.Offset = context.Pc;
+	frame.AddrStack.Offset = context.Sp;
+	frame.AddrFrame.Offset = context.R11;
 #endif
 	// Helper struct, only needed in this method.
 	struct StackFrame {
@@ -193,7 +216,8 @@ void print_stack_trace(int p_skip_called, int p_skip_callers) {
 		unsigned int line;
 	};
 	Vector<StackFrame> frames;
-	while (StackWalk(machine, process, thread, &frame, &context, NULL, SymFunctionTableAccess, SymGetModuleBase, NULL)) {
+	int stack_count = 0;
+	while (stack_count < MAX_STACK_LENGTH_WINDOWS && StackWalk(machine, process, thread, &frame, &context, NULL, SymFunctionTableAccess, SymGetModuleBase, NULL)) {
 		StackFrame f = {};
 		// Module name (executable name).
 		int64_t moduleBase = SymGetModuleBase(process, frame.AddrPC.Offset);
@@ -227,6 +251,7 @@ void print_stack_trace(int p_skip_called, int p_skip_callers) {
 			continue;
 		}
 		frames.push_back(f);
+		stack_count++;
 	}
 	SymCleanup(process);
 	// Format and print out the desired stack trace frames.
@@ -237,13 +262,13 @@ void print_stack_trace(int p_skip_called, int p_skip_callers) {
 				frames[i].symbol_name.get_file(),
 				frames[i].file_name.get_file(),
 				frames[i].line);
-		OS::get_singleton()->print(s.utf8().get_data());
+		safe_print(s.utf8().get_data());
 	}
 #else // Not x86_64 or x86_32.
-	OS::get_singleton()->print("Stack trace printing is not supported on this architecture on Windows.\n");
+	safe_print("Stack trace printing is not supported on this architecture on Windows.\n");
 #endif
 #else // Not Windows, macOS, or Linux.
-	OS::get_singleton()->print("Stack trace printing is only supported on Windows, macOS, and Linux.\n");
+	safe_print("Stack trace printing is only supported on Windows, macOS, and Linux.\n");
 #endif
 #endif // DEV_ENABLED
 }

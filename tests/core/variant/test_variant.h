@@ -2147,6 +2147,14 @@ struct MethodData {
 	bool is_vararg = false;
 };
 
+TEST_CASE("[Variant] Signaling Null") {
+	Variant regular_null = Variant();
+	Variant signaling_null = Variant::create_signaling_null();
+
+	CHECK_FALSE(regular_null.is_signaling_null());
+	CHECK(signaling_null.is_signaling_null());
+}
+
 TEST_CASE("[Variant] Utility functions") {
 	List<MethodData> functions;
 

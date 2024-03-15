@@ -307,6 +307,28 @@ void GDScriptAnalyzer::get_class_node_current_scope_classes(GDScriptParser::Clas
 	}
 }
 
+void GDScriptAnalyzer::_replace_identifier_with_target_object_subscript(GDScriptParser::ExpressionNode **p_identifier_variable) {
+	GDScriptParser::IdentifierNode *identifier = static_cast<GDScriptParser::IdentifierNode *>(*p_identifier_variable);
+	if (!identifier || identifier->source != GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE) {
+		return; // This is not an identifier in need of replacing.
+	}
+	GDScriptParser::ClassNode *class_node = parser->current_class;
+	if (!class_node || !class_node->has_member(SNAME("target_object"))) {
+		return; // Not TMUserGDScript if it's missing target_object.
+	}
+	GDScriptParser::ClassNode::Member member = class_node->get_member(SNAME("target_object"));
+	GDScriptParser::IdentifierNode *base_identifier = parser->allocate_node<GDScriptParser::IdentifierNode>();
+	base_identifier->name = "target_object";
+	base_identifier->source = GDScriptParser::IdentifierNode::Source::MEMBER_VARIABLE;
+	base_identifier->variable_source = member.variable;
+	GDScriptParser::SubscriptNode *subscript_node = parser->allocate_node<GDScriptParser::SubscriptNode>();
+	subscript_node->base = base_identifier;
+	subscript_node->attribute = identifier;
+	subscript_node->is_attribute = true;
+	reduce_expression(subscript_node);
+	*p_identifier_variable = subscript_node;
+}
+
 Error GDScriptAnalyzer::resolve_class_inheritance(GDScriptParser::ClassNode *p_class, const GDScriptParser::Node *p_source) {
 	if (p_source == nullptr && parser->has_class(p_class)) {
 		p_source = p_class;
@@ -1519,9 +1541,10 @@ void GDScriptAnalyzer::resolve_node(GDScriptParser::Node *p_node, bool p_is_root
 		case GDScriptParser::Node::SUBSCRIPT:
 		case GDScriptParser::Node::TERNARY_OPERATOR:
 		case GDScriptParser::Node::TYPE_TEST:
-		case GDScriptParser::Node::UNARY_OPERATOR:
-			reduce_expression(static_cast<GDScriptParser::ExpressionNode *>(p_node), p_is_root);
-			break;
+		case GDScriptParser::Node::UNARY_OPERATOR: {
+			GDScriptParser::ExpressionNode *expr = static_cast<GDScriptParser::ExpressionNode *>(p_node);
+			reduce_expression(expr, p_is_root);
+		} break;
 		case GDScriptParser::Node::BREAK:
 		case GDScriptParser::Node::BREAKPOINT:
 		case GDScriptParser::Node::CONTINUE:
@@ -1889,6 +1912,8 @@ void GDScriptAnalyzer::resolve_assignable(GDScriptParser::AssignableNode *p_assi
 
 	if (p_assignable->initializer != nullptr) {
 		reduce_expression(p_assignable->initializer);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&p_assignable->initializer);
 
 		if (p_assignable->initializer->type == GDScriptParser::Node::ARRAY) {
 			GDScriptParser::ArrayNode *array = static_cast<GDScriptParser::ArrayNode *>(p_assignable->initializer);
@@ -2035,6 +2060,8 @@ void GDScriptAnalyzer::resolve_parameter(GDScriptParser::ParameterNode *p_parame
 
 void GDScriptAnalyzer::resolve_if(GDScriptParser::IfNode *p_if) {
 	reduce_expression(p_if->condition);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_if->condition);
 
 	resolve_suite(p_if->true_block);
 	p_if->set_datatype(p_if->true_block->get_datatype());
@@ -2069,6 +2096,8 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 					for (int i = 0; i < call->arguments.size(); i++) {
 						GDScriptParser::ExpressionNode *argument = call->arguments[i];
 						reduce_expression(argument);
+						// The Mirror: If this should be redirected to target_object, do so.
+						_replace_identifier_with_target_object_subscript(&argument);
 
 						if (argument->is_constant) {
 							if (argument->reduced_value.get_type() != Variant::INT && argument->reduced_value.get_type() != Variant::FLOAT) {
@@ -2092,6 +2121,8 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 								}
 							}
 						}
+						// The Mirror: Argument may be a different object, so update the call arguments.
+						call->arguments.set(i, argument);
 					}
 
 					Variant reduced;
@@ -2135,6 +2166,8 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 		list_visible_type = "Array[int]"; // NOTE: `range()` has `Array` return type.
 	} else if (p_for->list) {
 		resolve_node(p_for->list, false);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&p_for->list);
 		GDScriptParser::DataType list_type = p_for->list->get_datatype();
 		list_visible_type = list_type.to_string();
 		if (!list_type.is_hard_type()) {
@@ -2226,6 +2259,8 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 
 void GDScriptAnalyzer::resolve_while(GDScriptParser::WhileNode *p_while) {
 	resolve_node(p_while->condition, false);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_while->condition);
 
 	resolve_suite(p_while->loop);
 	p_while->set_datatype(p_while->loop->get_datatype());
@@ -2233,8 +2268,12 @@ void GDScriptAnalyzer::resolve_while(GDScriptParser::WhileNode *p_while) {
 
 void GDScriptAnalyzer::resolve_assert(GDScriptParser::AssertNode *p_assert) {
 	reduce_expression(p_assert->condition);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_assert->condition);
 	if (p_assert->message != nullptr) {
 		reduce_expression(p_assert->message);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&p_assert->message);
 		if (!p_assert->message->get_datatype().has_no_type() && (p_assert->message->get_datatype().kind != GDScriptParser::DataType::BUILTIN || p_assert->message->get_datatype().builtin_type != Variant::STRING)) {
 			push_error(R"(Expected string for assert error message.)", p_assert->message);
 		}
@@ -2255,6 +2294,8 @@ void GDScriptAnalyzer::resolve_assert(GDScriptParser::AssertNode *p_assert) {
 
 void GDScriptAnalyzer::resolve_match(GDScriptParser::MatchNode *p_match) {
 	reduce_expression(p_match->test);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_match->test);
 
 	for (int i = 0; i < p_match->branches.size(); i++) {
 		resolve_match_branch(p_match->branches[i], p_match->test);
@@ -2380,6 +2421,8 @@ void GDScriptAnalyzer::resolve_return(GDScriptParser::ReturnNode *p_return) {
 			reduce_call(static_cast<GDScriptParser::CallNode *>(p_return->return_value), false, true);
 		} else {
 			reduce_expression(p_return->return_value);
+			// The Mirror: If this should be redirected to target_object, do so.
+			_replace_identifier_with_target_object_subscript(&p_return->return_value);
 		}
 		if (is_void_function) {
 			p_return->void_return = true;
@@ -2542,6 +2585,8 @@ void GDScriptAnalyzer::reduce_array(GDScriptParser::ArrayNode *p_array) {
 	for (int i = 0; i < p_array->elements.size(); i++) {
 		GDScriptParser::ExpressionNode *element = p_array->elements[i];
 		reduce_expression(element);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&element);
 	}
 
 	// It's array in any case.
@@ -2649,6 +2694,9 @@ void GDScriptAnalyzer::update_array_literal_element_type(GDScriptParser::ArrayNo
 
 void GDScriptAnalyzer::reduce_assignment(GDScriptParser::AssignmentNode *p_assignment) {
 	reduce_expression(p_assignment->assigned_value);
+	// The Mirror: If these should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_assignment->assignee);
+	_replace_identifier_with_target_object_subscript(&p_assignment->assigned_value);
 
 #ifdef DEBUG_ENABLED
 	// Increment assignment count for local variables.
@@ -2822,6 +2870,8 @@ void GDScriptAnalyzer::reduce_await(GDScriptParser::AwaitNode *p_await) {
 		reduce_call(static_cast<GDScriptParser::CallNode *>(p_await->to_await), true);
 	} else {
 		reduce_expression(p_await->to_await);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&p_await->to_await);
 	}
 
 	GDScriptParser::DataType await_type = p_await->to_await->get_datatype();
@@ -2847,6 +2897,9 @@ void GDScriptAnalyzer::reduce_await(GDScriptParser::AwaitNode *p_await) {
 void GDScriptAnalyzer::reduce_binary_op(GDScriptParser::BinaryOpNode *p_binary_op) {
 	reduce_expression(p_binary_op->left_operand);
 	reduce_expression(p_binary_op->right_operand);
+	// The Mirror: If these should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_binary_op->left_operand);
+	_replace_identifier_with_target_object_subscript(&p_binary_op->right_operand);
 
 	GDScriptParser::DataType left_type;
 	if (p_binary_op->left_operand) {
@@ -2981,11 +3034,15 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 	bool all_is_constant = true;
 	HashMap<int, GDScriptParser::ArrayNode *> arrays; // For array literal to potentially type when passing.
 	for (int i = 0; i < p_call->arguments.size(); i++) {
-		reduce_expression(p_call->arguments[i]);
-		if (p_call->arguments[i]->type == GDScriptParser::Node::ARRAY) {
-			arrays[i] = static_cast<GDScriptParser::ArrayNode *>(p_call->arguments[i]);
+		GDScriptParser::ExpressionNode *arg_expr = p_call->arguments[i];
+		reduce_expression(arg_expr);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&arg_expr);
+		if (arg_expr->type == GDScriptParser::Node::ARRAY) {
+			arrays[i] = static_cast<GDScriptParser::ArrayNode *>(arg_expr);
 		}
-		all_is_constant = all_is_constant && p_call->arguments[i]->is_constant;
+		all_is_constant = all_is_constant && arg_expr->is_constant;
+		p_call->arguments.set(i, arg_expr);
 	}
 
 	GDScriptParser::Node::Type callee_type = p_call->get_callee_type();
@@ -3329,6 +3386,8 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 			base_type = make_builtin_meta_type(GDScriptParser::get_builtin_type(base_id->name));
 		} else {
 			reduce_expression(subscript->base);
+			// The Mirror: If this should be redirected to target_object, do so.
+			_replace_identifier_with_target_object_subscript(&subscript->base);
 			base_type = subscript->base->get_datatype();
 			is_self = subscript->base->type == GDScriptParser::Node::SELF;
 		}
@@ -3419,6 +3478,9 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 
 		call_type = return_type;
 	} else {
+		// The Mirror: callee_type may be changed, it will become SUBSCRIPT
+		// when redirecting calls to target_object.
+		callee_type = p_call->get_callee_type();
 		bool found = false;
 
 		// Enums do not have functions other than the built-in dictionary ones.
@@ -3429,12 +3491,15 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 				push_error(vformat(R"*(The native enum "%s" does not behave like Dictionary and does not have methods of its own.)*", base_type.enum_type), p_call->callee);
 			}
 		} else if (!p_call->is_super && callee_type != GDScriptParser::Node::NONE) { // Check if the name exists as something else.
-			GDScriptParser::IdentifierNode *callee_id;
+			GDScriptParser::IdentifierNode *base_id = nullptr;
+			GDScriptParser::IdentifierNode *callee_id = nullptr;
 			if (callee_type == GDScriptParser::Node::IDENTIFIER) {
 				callee_id = static_cast<GDScriptParser::IdentifierNode *>(p_call->callee);
 			} else {
 				// Can only be attribute.
-				callee_id = static_cast<GDScriptParser::SubscriptNode *>(p_call->callee)->attribute;
+				GDScriptParser::SubscriptNode *subscript = static_cast<GDScriptParser::SubscriptNode *>(p_call->callee);
+				base_id = static_cast<GDScriptParser::IdentifierNode *>(subscript->base);
+				callee_id = subscript->attribute;
 			}
 			if (callee_id) {
 				reduce_identifier_from_base(callee_id, &base_type);
@@ -3451,6 +3516,21 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 					parser->push_warning(p_call, GDScriptWarning::UNSAFE_METHOD_ACCESS, p_call->function_name, base_type.to_string());
 					mark_node_unsafe(p_call);
 #endif
+				} else if (callee_datatype.kind == GDScriptParser::DataType::Kind::UNRESOLVED) {
+					// The Mirror: Check if the method exists on our target_object.
+					if (base_id && base_id->name == SNAME("target_object") && parser->current_class->has_member(SNAME("target_object"))) {
+						GDScriptParser::ClassNode::Member member = parser->current_class->get_member(SNAME("target_object"));
+						GDScriptParser::VariableNode *var = static_cast<GDScriptParser::VariableNode *>(member.variable);
+						if (var) {
+							GDScriptParser::LiteralNode *lit = static_cast<GDScriptParser::LiteralNode *>(var->initializer);
+							if (lit) {
+								Object *obj = lit->value;
+								if (obj && obj->has_method(p_call->function_name)) {
+									found = true;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -3482,6 +3562,8 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 
 void GDScriptAnalyzer::reduce_cast(GDScriptParser::CastNode *p_cast) {
 	reduce_expression(p_cast->operand);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_cast->operand);
 
 	GDScriptParser::DataType cast_type = type_from_metatype(resolve_datatype(p_cast->cast_type));
 
@@ -3534,11 +3616,15 @@ void GDScriptAnalyzer::reduce_dictionary(GDScriptParser::DictionaryNode *p_dicti
 	HashMap<Variant, GDScriptParser::ExpressionNode *, VariantHasher, StringLikeVariantComparator> elements;
 
 	for (int i = 0; i < p_dictionary->elements.size(); i++) {
-		const GDScriptParser::DictionaryNode::Pair &element = p_dictionary->elements[i];
+		GDScriptParser::DictionaryNode::Pair element = p_dictionary->elements.get(i);
 		if (p_dictionary->style == GDScriptParser::DictionaryNode::PYTHON_DICT) {
 			reduce_expression(element.key);
+			// The Mirror: If this should be redirected to target_object, do so.
+			_replace_identifier_with_target_object_subscript(&element.key);
 		}
 		reduce_expression(element.value);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&element.value);
 
 		if (element.key->is_constant) {
 			if (elements.has(element.key->reduced_value)) {
@@ -3547,6 +3633,8 @@ void GDScriptAnalyzer::reduce_dictionary(GDScriptParser::DictionaryNode *p_dicti
 				elements[element.key->reduced_value] = element.value;
 			}
 		}
+		// The Mirror: Element may be a different object, so update the dict elements.
+		p_dictionary->elements.set(i, element);
 	}
 
 	// It's dictionary in any case.
@@ -3938,6 +4026,31 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 			} else {
 				p_identifier->set_datatype(type_from_variant(int_constant, p_identifier));
 			}
+			return;
+		}
+	}
+
+	// The Mirror: Check if the variable exists on our target_object.
+	if (parser->current_class->has_member(SNAME("target_object"))) {
+		GDScriptParser::ClassNode::Member member = parser->current_class->get_member(SNAME("target_object"));
+		GDScriptParser::VariableNode *var = static_cast<GDScriptParser::VariableNode *>(member.variable);
+		if (var) {
+			GDScriptParser::LiteralNode *lit = static_cast<GDScriptParser::LiteralNode *>(var->initializer);
+			if (lit) {
+				Object *obj = lit->value;
+				if (obj) {
+					bool valid = false;
+					obj->get(p_identifier->name, &valid);
+					if (valid) {
+						// Unfortunately there does not seem to be a way to perform the redirection
+						// at this stage in the analyzer, since this IdentifierNode may be referenced
+						// in many contexts, and we do not have a simple way to swap it out for a
+						// SubscriptNode. This code kicks the problem down the line for later stages.
+						// That's what all the _replace_identifier_with_target_object_subscript calls are.
+						p_identifier->source = GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE;
+					}
+				}
+			}
 		}
 	}
 }
@@ -4017,6 +4130,7 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 		case GDScriptParser::IdentifierNode::UNDEFINED_SOURCE:
 		case GDScriptParser::IdentifierNode::MEMBER_FUNCTION:
 		case GDScriptParser::IdentifierNode::MEMBER_CLASS:
+		case GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE:
 			break;
 	}
 
@@ -4087,6 +4201,7 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 				case GDScriptParser::IdentifierNode::MEMBER_CLASS:
 				case GDScriptParser::IdentifierNode::INHERITED_VARIABLE:
 				case GDScriptParser::IdentifierNode::STATIC_VARIABLE:
+				case GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE:
 					return; // No need to capture.
 			}
 
@@ -4342,6 +4457,8 @@ void GDScriptAnalyzer::reduce_subscript(GDScriptParser::SubscriptNode *p_subscri
 	} else {
 		reduce_expression(p_subscript->base);
 	}
+	// The Mirror: If these should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_subscript->base);
 
 	GDScriptParser::DataType result_type;
 
@@ -4443,6 +4560,8 @@ void GDScriptAnalyzer::reduce_subscript(GDScriptParser::SubscriptNode *p_subscri
 			return;
 		}
 		reduce_expression(p_subscript->index);
+		// The Mirror: If this should be redirected to target_object, do so.
+		_replace_identifier_with_target_object_subscript(&p_subscript->index);
 
 		if (p_subscript->base->is_constant && p_subscript->index->is_constant) {
 			// Just try to get it.
@@ -4643,6 +4762,10 @@ void GDScriptAnalyzer::reduce_ternary_op(GDScriptParser::TernaryOpNode *p_ternar
 	reduce_expression(p_ternary_op->condition);
 	reduce_expression(p_ternary_op->true_expr, p_is_root);
 	reduce_expression(p_ternary_op->false_expr, p_is_root);
+	// The Mirror: If these should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_ternary_op->condition);
+	_replace_identifier_with_target_object_subscript(&p_ternary_op->true_expr);
+	_replace_identifier_with_target_object_subscript(&p_ternary_op->false_expr);
 
 	GDScriptParser::DataType result;
 
@@ -4699,6 +4822,8 @@ void GDScriptAnalyzer::reduce_type_test(GDScriptParser::TypeTestNode *p_type_tes
 	}
 
 	reduce_expression(p_type_test->operand);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_type_test->operand);
 	GDScriptParser::DataType operand_type = p_type_test->operand->get_datatype();
 	GDScriptParser::DataType test_type = type_from_metatype(resolve_datatype(p_type_test->test_type));
 	p_type_test->test_datatype = test_type;
@@ -4731,6 +4856,8 @@ void GDScriptAnalyzer::reduce_type_test(GDScriptParser::TypeTestNode *p_type_tes
 
 void GDScriptAnalyzer::reduce_unary_op(GDScriptParser::UnaryOpNode *p_unary_op) {
 	reduce_expression(p_unary_op->operand);
+	// The Mirror: If this should be redirected to target_object, do so.
+	_replace_identifier_with_target_object_subscript(&p_unary_op->operand);
 
 	GDScriptParser::DataType result;
 
@@ -5176,6 +5303,16 @@ bool GDScriptAnalyzer::get_function_signature(GDScriptParser::Node *p_source, bo
 
 		resolve_class_inheritance(base_class, p_source);
 		base_class = base_class->base_type.class_type;
+	}
+	// The Mirror: If this is a call and no function was found,
+	// change this to a call on the target_object.
+	if (p_source->type == GDScriptParser::Node::Type::CALL && found_function == nullptr) {
+		GDScriptParser::CallNode *call_node = static_cast<GDScriptParser::CallNode *>(p_source);
+		if (call_node->get_callee_type() == GDScriptParser::Node::Type::IDENTIFIER) {
+			GDScriptParser::IdentifierNode *func_name_identifier = static_cast<GDScriptParser::IdentifierNode *>(call_node->callee);
+			func_name_identifier->source = GDScriptParser::IdentifierNode::Source::TARGET_OBJECT_VARIABLE;
+			_replace_identifier_with_target_object_subscript(&call_node->callee);
+		}
 	}
 
 	if (found_function != nullptr) {

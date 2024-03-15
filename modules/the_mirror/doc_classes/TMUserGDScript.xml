@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMUserGDScript" inherits="GDScript" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror's GDScript wrapper for user-provided code.
+	</brief_description>
+	<description>
+		Wrapper around the [GDScript] class that allows for user-provided GDScript code.
+		Identifiers such as method calls, propery accesses, and signals are automatically redirected to the target object (usually a SpaceObject) to provide users with a seamless experience similar to using The Mirror's visual scripting, with the ability to have multiple scripts per object.
+		[codeblocks]
+		[gdscript skip-lint]
+		var user_script = TMUserGDScript.new()
+		user_script.load_user_gdscript(the_gdscript_code, the_space_object)
+		if not user_script.get_error_messages().is_empty():
+		    # Handle error messages here.
+		    return
+		var node = user_script.new()
+		add_child(node)
+		[/gdscript]
+		[/codeblocks]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_error_messages" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an [Array] of error messages from the last call to [method load_user_gdscript]. These can be displayed to the user in the UI.
+				Each error message is a [Dictionary] with 3 items: [code]line[/code], [code]column[/code], and [code]message[/code].
+			</description>
+		</method>
+		<method name="load_user_gdscript">
+			<return type="int" enum="Error" />
+			<param index="0" name="source_code" type="String" />
+			<param index="1" name="target_object" type="Object" />
+			<description>
+				Loads the given [param source_code] String. Implicit calls to self are automatically redirected to the [param target_object].
+				If any errors are encountered, they are stored and can be retrieved with [method get_error_messages], and this method will return an error code.
+			</description>
+		</method>
+	</methods>
+</class>

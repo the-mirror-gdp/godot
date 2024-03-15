@@ -293,6 +293,12 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="create_signaling_null">
+			<return type="Variant" />
+			<description>
+				Creates a new [Variant] of [constant TYPE_NIL] with the payload set to 1. This behaves exactly like a null in every context except for [method is_signaling_null].
+			</description>
+		</method>
 		<method name="cubic_interpolate">
 			<return type="float" />
 			<param index="0" name="from" type="float" />
@@ -605,6 +611,13 @@
 				[/codeblock]
 				These are [Variant] value types: [code]null[/code], [bool], [int], [float], [String], [StringName], [Vector2], [Vector2i], [Vector3], [Vector3i], [Vector4], [Vector4i], [Rect2], [Rect2i], [Transform2D], [Transform3D], [Plane], [Quaternion], [AABB], [Basis], [Projection], [Color], [NodePath], [RID], [Callable] and [Signal].
 				These are [Variant] reference types: [Object], [Dictionary], [Array], [PackedByteArray], [PackedInt32Array], [PackedInt64Array], [PackedFloat32Array], [PackedFloat64Array], [PackedStringArray], [PackedVector2Array], [PackedVector3Array], [PackedVector4Array], and [PackedColorArray].
+			</description>
+		</method>
+		<method name="is_signaling_null">
+			<return type="bool" />
+			<param index="0" name="variant" type="Variant" />
+			<description>
+				Returns true if the [Variant] is [constant TYPE_NIL] and has a non-zero payload. This should only happen for Variants created with [method create_signaling_null].
 			</description>
 		</method>
 		<method name="is_zero_approx">

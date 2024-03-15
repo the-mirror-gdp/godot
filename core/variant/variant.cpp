@@ -1074,6 +1074,19 @@ bool Variant::is_null() const {
 	}
 }
 
+bool Variant::is_signaling_null() const {
+	if (type == NIL) {
+		return _data._int != 0;
+	}
+	return false;
+}
+
+Variant Variant::create_signaling_null() {
+	Variant v;
+	v._data._int = 1;
+	return v;
+}
+
 bool Variant::initialize_ref(Object *p_object) {
 	RefCounted *ref_counted = const_cast<RefCounted *>(static_cast<const RefCounted *>(p_object));
 	if (!ref_counted->init_ref()) {

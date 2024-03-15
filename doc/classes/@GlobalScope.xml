@@ -1549,6 +1549,9 @@
 		</method>
 	</methods>
 	<members>
+		<member name="AppProtocol" type="AppProtocol" setter="" getter="">
+			The [AppProtocol] singleton.
+		</member>
 		<member name="AudioServer" type="AudioServer" setter="" getter="">
 			The [AudioServer] singleton.
 		</member>

@@ -123,6 +123,11 @@
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
 #endif // MODULE_GDSCRIPT_ENABLED
 
+/* Required for registering app protocols */
+#ifdef MODULE_APP_PROTOCOL_ENABLED
+#include "modules/app_protocol/app_protocol.h"
+#endif // MODULE_APP_PROTOCOL_ENABLED
+
 /* Static members */
 
 // Singletons
@@ -984,6 +989,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	Error exit_code = ERR_INVALID_PARAMETER;
 
 	I = args.front();
+#ifdef MODULE_APP_PROTOCOL_ENABLED
+	bool uri_passed = false;
+	String uri_data = "";
+#endif // MODULE_APP_PROTOCOL_ENABLED
+
 	while (I) {
 #ifdef MACOS_ENABLED
 		// Ignore the process serial number argument passed by macOS Gatekeeper.
@@ -995,6 +1005,15 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif
 
 		List<String>::Element *N = I->next();
+#ifdef MODULE_APP_PROTOCOL_ENABLED
+		// in the case where we have no arguments from a browser OR a test execution with --uri.
+		if (I->get() == "--uri") {
+			if (I->next()) {
+				uri_passed = true;
+				uri_data = I->next()->get();
+			}
+		}
+#endif // MODULE_APP_PROTOCOL_ENABLED
 
 #ifdef TOOLS_ENABLED
 		if (I->get() == "--debug" ||
@@ -1776,6 +1795,17 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	register_core_extensions(); // core extensions must be registered after globals setup and before display
 
 	ResourceUID::get_singleton()->load_from_cache(true); // load UUIDs from cache.
+
+	// Deeplinking must be here as the client must have a valid project settings pointer which actually contains
+	// The non default configuration from the app, otherwise the client will flakily initialise deeplinking
+	if (uri_passed && !uri_data.is_empty()) {
+		print_verbose("String to send if client is open: " + uri_data);
+		if (AppProtocol::get_singleton()->try_client_ipc_connection_deeplink(uri_data.ascii().get_data())) {
+			// Upon completing sending of the message we shut the app as it is already open.
+			exit_code = ERR_HELP;
+			goto error;
+		}
+	}
 
 	if (ProjectSettings::get_singleton()->has_custom_feature("dedicated_server")) {
 		audio_driver = NULL_AUDIO_DRIVER;

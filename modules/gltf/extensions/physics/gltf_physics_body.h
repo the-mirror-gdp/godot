@@ -33,6 +33,9 @@
 
 #include "scene/3d/physics/physics_body_3d.h"
 
+class JBody3D;
+class JShape3D;
+
 // GLTFPhysicsBody is an intermediary between Godot's physics body nodes
 // and the OMI_physics_body extension.
 // https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/OMI_physics_body
@@ -99,6 +102,10 @@ public:
 
 	static Ref<GLTFPhysicsBody> from_node(const CollisionObject3D *p_body_node);
 	CollisionObject3D *to_node() const;
+
+	static Ref<GLTFPhysicsBody> from_jbody(const JBody3D *p_jbody);
+	JBody3D *to_jbody();
+	void apply_to_jbody(JBody3D *p_jbody) const;
 
 	static Ref<GLTFPhysicsBody> from_dictionary(const Dictionary p_dictionary);
 	Dictionary to_dictionary() const;

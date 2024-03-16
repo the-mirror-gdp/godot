@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JLayersTable" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+		The [JLayersTable] is a [Resource] in which the [JBody3D] collision-response types are stored.
+		Generally you have a single table for the entire project, for example [code]res://jolt_layers_table.tres[/code]. In order to use this table, it's necessary to specify its path on the project settings [code]jolt/config/layers_table[/code]
+		In order to add a new Layer or change a layer's collision response, you can double click the resource to open it and change its content using the detail panel.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

@@ -91,10 +91,10 @@ def configure(env: "SConsEnvironment"):
         env.Append(CCFLAGS=["-arch", "arm64", "-mmacosx-version-min=11.0"])
         env.Append(LINKFLAGS=["-arch", "arm64", "-mmacosx-version-min=11.0"])
     elif env["arch"] == "x86_64":
-        print("Building for macOS 10.13+.")
-        env.Append(ASFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
-        env.Append(CCFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
-        env.Append(LINKFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
+        print("Building for macOS 10.15+.")
+        env.Append(ASFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.15"])
+        env.Append(CCFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.15"])
+        env.Append(LINKFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.15"])
 
     cc_version = get_compiler_version(env)
     cc_version_major = cc_version["apple_major"]

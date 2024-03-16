@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JCompoundShape3D" inherits="JShape3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D compound shape used for physics collision.
+	</brief_description>
+	<description>
+		A compound shape made out of other 3D shapes. The shapes in the compound shape may be any other [JShape3D], including other JCompoundShape3D shapes.
+		If the compound shape contains a [JMeshShape3D], it is concave and may only be used on static objects. Shapes may not be changed after the compound shape is generated.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_shape">
+			<return type="void" />
+			<param index="0" name="shape" type="JShape3D" />
+			<param index="1" name="transform" type="Transform3D" />
+			<description>
+				Adds a new shape to the compound shape. Note that this may only be done before calling [method JShape3D.make_shape].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="shapes" type="Array" setter="set_shapes" getter="get_shapes" default="[]">
+			The shapes in the compound shape. Note that this may only be changed before calling [method JShape3D.make_shape].
+		</member>
+		<member name="transforms" type="Array" setter="set_transforms" getter="get_transforms" default="[]">
+			The transforms of the shapes in the compound shape. Note that this may only be changed before calling [method JShape3D.make_shape].
+		</member>
+	</members>
+</class>

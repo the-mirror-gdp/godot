@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JSphereShape3D" inherits="JShape3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D sphere shape used for physics collision.
+	</brief_description>
+	<description>
+		A 3D sphere shape defined by a radius. This is the Jolt version of Godot's [SphereShape3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.5">
+			The sphere's radius. The shape's diameter is double the radius.
+		</member>
+	</members>
+</class>

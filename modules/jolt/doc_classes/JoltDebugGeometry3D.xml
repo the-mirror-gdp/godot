@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JoltDebugGeometry3D" inherits="GeometryInstance3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="cast_shadow" type="int" setter="set_cast_shadows_setting" getter="get_cast_shadows_setting" overrides="GeometryInstance3D" enum="GeometryInstance3D.ShadowCastingSetting" default="0" />
+		<member name="draw_as_wireframe" type="bool" setter="set_draw_as_wireframe" getter="get_draw_as_wireframe" default="true">
+		</member>
+		<member name="draw_bodies" type="bool" setter="set_draw_bodies" getter="get_draw_bodies" default="true">
+		</member>
+		<member name="draw_bounding_boxes" type="bool" setter="set_draw_bounding_boxes" getter="get_draw_bounding_boxes" default="false">
+		</member>
+		<member name="draw_centers_of_mass" type="bool" setter="set_draw_centers_of_mass" getter="get_draw_centers_of_mass" default="false">
+		</member>
+		<member name="draw_constraint_limits" type="bool" setter="set_draw_constraint_limits" getter="get_draw_constraint_limits" default="false">
+		</member>
+		<member name="draw_constraint_reference_frames" type="bool" setter="set_draw_constraint_reference_frames" getter="get_draw_constraint_reference_frames" default="false">
+		</member>
+		<member name="draw_constraints" type="bool" setter="set_draw_constraints" getter="get_draw_constraints" default="true">
+		</member>
+		<member name="draw_shapes" type="bool" setter="set_draw_shapes" getter="get_draw_shapes" default="true">
+		</member>
+		<member name="draw_transforms" type="bool" setter="set_draw_transforms" getter="get_draw_transforms" default="false">
+		</member>
+		<member name="draw_triangle_outlines" type="bool" setter="set_draw_triangle_outlines" getter="get_draw_triangle_outlines" default="false">
+		</member>
+		<member name="draw_velocities" type="bool" setter="set_draw_velocities" getter="get_draw_velocities" default="false">
+		</member>
+		<member name="draw_with_color_scheme" type="int" setter="set_draw_with_color_scheme" getter="get_draw_with_color_scheme" enum="JoltDebugGeometry3D.ColorScheme" default="1">
+		</member>
+		<member name="material_depth_test" type="bool" setter="set_material_depth_test" getter="get_material_depth_test" default="true">
+		</member>
+	</members>
+	<constants>
+		<constant name="COLOR_SCHEME_INSTANCE" value="0" enum="ColorScheme">
+		</constant>
+		<constant name="COLOR_SCHEME_SHAPE_TYPE" value="1" enum="ColorScheme">
+		</constant>
+		<constant name="COLOR_SCHEME_MOTION_TYPE" value="2" enum="ColorScheme">
+		</constant>
+		<constant name="COLOR_SCHEME_SLEEP_STATE" value="3" enum="ColorScheme">
+		</constant>
+		<constant name="COLOR_SCHEME_ISLAND" value="4" enum="ColorScheme">
+		</constant>
+	</constants>
+</class>

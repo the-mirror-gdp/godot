@@ -1,3 +1,5 @@
+import os
+
 Import("env")
 Import("env_modules")
 
@@ -17,8 +19,54 @@ if env["module_vorbis_enabled"]:
     if env["builtin_libogg"]:
         env_modules.Prepend(CPPPATH=["#thirdparty/libogg"])
 
+pwd = os.getcwd()
+
+jolt_build_type = ""
+if env.dev_build:
+    jolt_build_type = "Debug"
+elif env["target"] == "editor":
+    jolt_build_type = "Release"
+elif env["target"] == "template_debug":
+    jolt_build_type = "Release"
+elif env["target"] == "template_release":
+    jolt_build_type = "Distribution"
+else:
+    exit("Error, unknown Godot build target `" + env["target"] + "`.")
+
 env_themirror_module = env_modules.Clone()
+env_themirror_module.Append(CPPDEFINES=[("JPH_CROSS_PLATFORM_DETERMINISTIC", 1)])
+env_themirror_module.Append(CPPDEFINES=[("CROSS_PLATFORM_DETERMINISTIC", 1)])
+env_themirror_module.Append(CPPDEFINES=[("JPH_DOUBLE_PRECISION", 1)])
+env_themirror_module.Append(CPPDEFINES=[("DOUBLE_PRECISION", 1)])
+env_themirror_module.Append(CPPDEFINES=[("OBJECT_LAYER_BITS", 32)])
+env_themirror_module.Append(CPPDEFINES=[("JPH_OBJECT_LAYER_BITS", 32)])
+
+if jolt_build_type == "Debug":
+    # Define some additional macros, automatically defined by Jolt, to make sure the ABI is correct.
+    env_themirror_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
+    env_themirror_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+    env_themirror_module.Append(CPPDEFINES=[("_DEBUG", 1)])
+    env_themirror_module.Append(CPPDEFINES=[("JPH_ENABLE_ASSERTS", 1)])
+    if env["platform"] == "windows":
+        # On Windows, in debug mode, this is enabled too.
+        env_themirror_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
+
+elif jolt_build_type == "Release":
+    env_themirror_module.Append(CPPDEFINES=[("NDEBUG", 1)])
+    env_themirror_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
+    env_themirror_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+    if env["platform"] == "windows":
+        # On Windows, in release mode, this is enabled too.
+        env_themirror_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
+
+else:
+    env_themirror_module.Append(CPPDEFINES=[("NDEBUG", 1)])
+    # Enables the renderer even in Distribution, which by default is disabled, because this project requires it to be always enabled.
+    env_themirror_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+
+env_themirror_module.Prepend(CPPPATH=[os.path.join(pwd, "..", "jolt", "thirdparty", "JoltPhysics")])
 
 env_themirror_module.add_source_files(env.modules_sources, "*.cpp")
+env_themirror_module.add_source_files(env.modules_sources, "physics/*.cpp")
 env_themirror_module.add_source_files(env.modules_sources, "script/*.cpp")
 env_themirror_module.add_source_files(env.modules_sources, "util/*.cpp")

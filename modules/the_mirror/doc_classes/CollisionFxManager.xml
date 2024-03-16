@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CollisionFxManager" inherits="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Handles the sound of colliding RigidBodies.
+	</brief_description>
+	<description>
+		Handles the sound of colliding RigidBodies.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

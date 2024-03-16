@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMSceneSync" inherits="GdSceneSynchronizer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror specialized SceneSynchronizer.
+	</brief_description>
+	<description>
+		The Mirror specialized SceneSynchronizer which synchronizes the Jolt's physics.
+		This class uses a NetLOD to lead the synchronization. By choosing the sync model and precision for each body relative to the relevance it has for each client, the NetLOD is responsible to keep the game playable regardless the spaces' SpaceObject count.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="fetch_free_sync_body_id">
+			<return type="int" />
+			<description>
+				Returns a free body id to use on a synchronized body. This MUST be called on the server.
+			</description>
+		</method>
+		<method name="fetch_free_unsync_body_id">
+			<return type="int" />
+			<description>
+				Returns a free body id to use on a NON-synchronized body.
+			</description>
+		</method>
+		<method name="register_controller">
+			<return type="void" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="node_composing_the_controller" type="Array" />
+			<description>
+				Utility function to register a new character. Must be called on both client and server just after a new character is instantiated.
+			</description>
+		</method>
+		<method name="release_body_id">
+			<return type="void" />
+			<param index="0" name="body_id" type="int" />
+			<description>
+				Frees the body id.
+			</description>
+		</method>
+		<method name="start_sync">
+			<return type="void" />
+			<param index="0" name="world_context" type="Object" />
+			<description>
+				Starts synchronizing the world. On the client side, this must be called after the peer has connected to the server. On the server side, this must be called after the peer is ready to accept connections.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="frame_confirmation_timespan" type="float" setter="set_frame_confirmation_timespan" getter="get_frame_confirmation_timespan" overrides="GdSceneSynchronizer" default="0.2" />
+	</members>
+</class>

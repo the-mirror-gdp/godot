@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TMCharacter3D" inherits="JBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The Mirror Character.
+	</brief_description>
+	<description>
+		The Mirror Character. It represents a playing avatar that is free to move and interact with the world.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="are_interactions_different">
+			<return type="bool" />
+			<param index="0" name="buffer_A" type="Object" />
+			<param index="1" name="buffer_B" type="Object" />
+			<description>
+				For internal use only, compares two interaction buffers.
+			</description>
+		</method>
+		<method name="count_interactions_buffer_size" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="buffer" type="Object" />
+			<description>
+				For internal use only, returns the interaction buffer size.
+			</description>
+		</method>
+		<method name="execute_interactions">
+			<return type="void" />
+			<param index="0" name="buffer" type="Object" />
+			<description>
+				For internal use only, exucutes all the interactions contained into the buffer.
+			</description>
+		</method>
+		<method name="get_cached_max_walk_speed" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the character walk speed.
+			</description>
+		</method>
+		<method name="get_character_relative_velocity" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the character velocity.
+			</description>
+		</method>
+		<method name="get_ground_velocity" qualifiers="const">
+			<return type="Vector3" />
+			<description>
+				Returns the character velocity relative to the ground. If the ground is a moving [JBody3D], it returns only the character velocity.
+			</description>
+		</method>
+		<method name="is_on_ceiling" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the character's head is touching the ceiling.
+			</description>
+		</method>
+		<method name="is_on_floor" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the character is not in air.
+			</description>
+		</method>
+		<method name="process_character">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<param index="1" name="input_move" type="Vector2" />
+			<param index="2" name="input_run" type="bool" />
+			<param index="3" name="input_jump" type="bool" />
+			<param index="4" name="gravity" type="float" />
+			<description>
+				Process the inputs and advances the character accordingly.
+			</description>
+		</method>
+		<method name="queue_interaction">
+			<return type="void" />
+			<param index="0" name="jbody" type="Object" />
+			<param index="1" name="interaction_name" type="StringName" />
+			<param index="2" name="argument" type="Variant" />
+			<description>
+				Queues an interaction and executes it on all the peers on the next frame. This MUST be called on the client controlling this character.
+			</description>
+		</method>
+		<method name="write_pending_interactions_to_buffer">
+			<return type="void" />
+			<param index="0" name="out_buffer" type="Object" />
+			<description>
+				For internal use only.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="air_acceleration" type="float" setter="set_air_acceleration" getter="get_air_acceleration" default="15.0">
+			Acceleration when the character is in air.
+		</member>
+		<member name="air_deceleration" type="float" setter="set_air_deceleration" getter="get_air_deceleration" default="5.0">
+			Deceleration when the character is in air.
+		</member>
+		<member name="character_height" type="float" setter="set_character_height" getter="get_character_height" default="1.75">
+			How tall the character is.
+		</member>
+		<member name="character_radius" type="float" setter="set_character_radius" getter="get_character_radius" default="0.3">
+			Defines the character's bradth.
+		</member>
+		<member name="character_supporting_offset" type="float" setter="set_character_supporting_offset" getter="get_character_supporting_offset" default="0.1">
+			Defines the height, starting from the bottom, within which the ground contacts fully supports the character; even on a slope.
+		</member>
+		<member name="frozen" type="bool" setter="set_frozen" getter="get_frozen" default="false">
+			TODO Remove this?
+		</member>
+		<member name="ground_acceleration" type="float" setter="set_ground_acceleration" getter="get_ground_acceleration" default="40.0">
+			The character's acceleration when the players move forward AND the character is touching the ground.
+		</member>
+		<member name="ground_deceleration" type="float" setter="set_ground_deceleration" getter="get_ground_deceleration" default="25.0">
+			The character's deceleration when the players STOP moving forward AND the character is touching the ground.
+		</member>
+		<member name="jolt_char_sync_data" type="PackedByteArray" setter="jolt_char_set_state" getter="jolt_char_get_state">
+			For internal use only. Is an array containing the character status. Used by the networking.
+		</member>
+		<member name="jump_height" type="float" setter="set_jump_height" getter="get_jump_height" default="2.0">
+			How far the character can jump, relative to the ground.
+		</member>
+		<member name="mass" type="float" setter="set_mass" getter="get_mass" overrides="JBody3D" default="70.0" />
+		<member name="max_push_strength_newton" type="float" setter="set_max_push_strength_newton" getter="get_max_push_strength_newton" default="50000.0">
+			The max forces that the character can generate per frame while touching a dynamic [JBody3D].
+		</member>
+		<member name="max_walking_slope_deg" type="float" setter="set_max_walking_slope_deg" getter="get_max_walking_slope_deg" default="50.0">
+			The maximum slope the character can stand on. Anything more steep will make the character slide.
+		</member>
+		<member name="movement_scale" type="float" setter="set_movement_scale" getter="get_movement_scale" default="1.0">
+			The character's movement scale.
+		</member>
+		<member name="predictive_contact_margin" type="float" setter="set_predictive_contact_margin" getter="get_predictive_contact_margin" default="0.3">
+		</member>
+		<member name="run_speed" type="float" setter="set_run_speed" getter="get_run_speed" default="9.0">
+			The character's MAX running speed.
+		</member>
+		<member name="shape_margin" type="float" setter="set_shape_margin" getter="get_shape_margin" default="0.02">
+		</member>
+		<member name="step_height" type="float" setter="set_step_height" getter="get_step_height" default="0.2">
+			Any obstacle smaller than the defined height will be considered a stair, and the character will just move over it without being slowed down.
+		</member>
+		<member name="walk_speed" type="float" setter="set_walk_speed" getter="get_walk_speed" default="5.0">
+			The character's MAX walking speed.
+		</member>
+	</members>
+	<signals>
+		<signal name="jump">
+			<description>
+				Emitted on character jump.
+			</description>
+		</signal>
+	</signals>
+</class>

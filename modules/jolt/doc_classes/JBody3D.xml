@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JBody3D" inherits="Node3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="activate">
+			<return type="void" />
+			<description>
+				Wakes the body from sleeping.
+			</description>
+		</method>
+		<method name="add_force">
+			<return type="void" />
+			<param index="0" name="force" type="Vector3" />
+			<description>
+				Adds a constant directional force without affecting rotation.
+			</description>
+		</method>
+		<method name="add_force_at_position">
+			<return type="void" />
+			<param index="0" name="force" type="Vector3" />
+			<param index="1" name="position" type="Vector3" />
+			<description>
+				Adds a constant force at a location. This may affect the body angular speed.
+			</description>
+		</method>
+		<method name="add_impulse">
+			<return type="void" />
+			<param index="0" name="impulse" type="Vector3" />
+			<description>
+				Applies a directional impulse without affecting rotation.
+			</description>
+		</method>
+		<method name="add_impulse_angular">
+			<return type="void" />
+			<param index="0" name="impulse" type="Vector3" />
+			<description>
+				Applies a torque impulse which will be affected by the body mass and shape. This will rotate the body around the passed in vector.
+			</description>
+		</method>
+		<method name="add_impulse_at_position">
+			<return type="void" />
+			<param index="0" name="impulse" type="Vector3" />
+			<param index="1" name="position" type="Vector3" />
+			<description>
+				Applies a positioned impulse to the body. An impulse is time independent! Applying an impulse every frame would result in a framerate dependent force. For this reason it should only be used when simulating one-time impacts. The position uses the rotation of the global coordinate system, but is centered at the object's origin.
+			</description>
+		</method>
+		<method name="add_torque">
+			<return type="void" />
+			<param index="0" name="torque" type="Vector3" />
+			<description>
+				Applies a torque which will be affected by the body mass and shape. This will rotate the body around the passed in vector.
+			</description>
+		</method>
+		<method name="call_interaction">
+			<return type="void" />
+			<param index="0" name="interaction_index" type="int" />
+			<param index="1" name="argument" type="Variant" />
+			<description>
+				This is an INTERNAL function and you should not use this.
+
+				The interaction is a function that once called is executed, in sync, on all the clients. In order to execute it you have to use [code]character.queue_interaction(the_jbody_3d, "function_name")[/code].
+			</description>
+		</method>
+		<method name="cast_body">
+			<return type="Array" />
+			<param index="0" name="move" type="Vector3" />
+			<param index="1" name="collide_with" type="Array" />
+			<description>
+				Similar to [code]body.cast_shape(...)[/code] cast this body toward the move vector and returns an [Array] containing the hits info.
+				NOTE: The body will not move after executing this function.
+			</description>
+		</method>
+		<method name="collide_body">
+			<return type="Array" />
+			<param index="0" name="collide_with_layers" type="Array" />
+			<param index="1" name="separation_distance" type="float" default="0.0" />
+			<description>
+				Similar to [code]body.collide_shape(...)[/code] collides this body toward the move vector and returns an [Array] containing the hits info.
+			</description>
+		</method>
+		<method name="collide_body_with_position">
+			<return type="Array" />
+			<param index="0" name="position" type="Transform3D" />
+			<param index="1" name="collide_with_layers" type="Array" />
+			<param index="2" name="separation_distance" type="float" default="0.0" />
+			<description>
+				Like [method collide_body] but you can tweak the position.
+			</description>
+		</method>
+		<method name="create_body">
+			<return type="void" />
+			<description>
+				Tell Jolt that this JBody3D is ready to be created. This is relevant only if you use [member desired_body_id].
+			</description>
+		</method>
+		<method name="get_body_id" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the Jolt's body id.
+			</description>
+		</method>
+		<method name="get_ignore_state_sync" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true when this body is completely ignoring the synchronization reconciliation.
+			</description>
+		</method>
+		<method name="get_interaction_id" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="func_name" type="StringName" />
+			<description>
+				Takes the function name as argument and returns the interaction ID or -1 if the function is not registered as interaction.
+			</description>
+		</method>
+		<method name="get_layer_name" qualifiers="const">
+			<return type="StringName" />
+			<description>
+				Returns the layer name this body is using.
+			</description>
+		</method>
+		<method name="has_body_id" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this body has a valid Jolt ID. Usually this is true when the Jolt body is created.
+			</description>
+		</method>
+		<method name="has_desired_body_id" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this body has a valid Jolt desired ID.
+			</description>
+		</method>
+		<method name="is_dynamic" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this is a dynamic body.
+			</description>
+		</method>
+		<method name="is_kinematic" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this is a kinematic body.
+			</description>
+		</method>
+		<method name="is_net_sync_updating" qualifiers="const">
+			<return type="bool" />
+			<description>
+				On client returns true when the object is still relevant and updated by the NetSync. When the object is far and not anylonger updated it returns false.
+			</description>
+		</method>
+		<method name="is_sensor" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this body is a sensor (area).
+			</description>
+		</method>
+		<method name="is_static" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if this body is static.
+			</description>
+		</method>
+		<method name="jolt_get_combined_layer_and_body_mode" qualifiers="const">
+			<return type="int" />
+			<description>
+				This function is for internal use only.
+				It returns an integer8 which combines both the body mode and layer index.
+			</description>
+		</method>
+		<method name="jolt_set_combined_layer_and_body_mode">
+			<return type="void" />
+			<param index="0" name="layer_and_body_mode" type="int" />
+			<description>
+				This function is for internal use only.
+			</description>
+		</method>
+		<method name="move_and_collide">
+			<return type="void" />
+			<param index="0" name="movement" type="Vector3" />
+			<param index="1" name="collide_with" type="Array" />
+			<description>
+				Moves the body by the amount specified by [param movement], stopping if it hits an obstacle. This is similar to Godot's built-in [method PhysicsBody3D.move_and_collide] method.
+				[b]Note:[/b] This method does not work with static bodies. The caller should check for this. Attempting to run this on static bodies will result in the body moving without colliding (because static bodies by definition do not collide with anything, other things collide with them).
+			</description>
+		</method>
+		<method name="move_kinematic">
+			<return type="void" />
+			<param index="0" name="position" type="Vector3" />
+			<param index="1" name="rotation" type="Basis" />
+			<param index="2" name="time" type="float" />
+			<description>
+				This function works only when the body mode is set to Kinematic. It moves the body to the given location and rotation in the specified time by changing the (kinematic) body velocities.
+			</description>
+		</method>
+		<method name="notify_received_net_sync_update">
+			<return type="void" />
+			<description>
+				This function is for internal use only.
+			</description>
+		</method>
+		<method name="register_interaction">
+			<return type="void" />
+			<param index="0" name="func_name" type="StringName" />
+			<description>
+				Takes a function name as argument and register it as interaction.
+			</description>
+		</method>
+		<method name="set_ignore_state_sync">
+			<return type="void" />
+			<param index="0" name="ignore" type="bool" />
+			<description>
+				Allows to completely ignore any reconciliation synchronization. This is dangerous and you should use with care.
+			</description>
+		</method>
+		<method name="set_layer_name">
+			<return type="void" />
+			<param index="0" name="layer_name" type="StringName" />
+			<description>
+				Set the body's layer.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="allow_sleeping" type="bool" setter="set_allow_sleeping" getter="get_allow_sleeping" default="true">
+			When true allows the body go to sleep.
+		</member>
+		<member name="angular_damping" type="float" setter="set_angular_damping" getter="get_angular_damping" default="0.05">
+			The body's angular damping.
+		</member>
+		<member name="angular_velocity" type="Vector3" setter="set_angular_velocity" getter="get_angular_velocity" default="Vector3(0, 0, 0)">
+			The body's angular velocity in radians per second.
+		</member>
+		<member name="body_mode" type="int" setter="set_body_mode" getter="get_body_mode" enum="JBody3D.BodyMode" default="2">
+			The body's motion mode.
+		</member>
+		<member name="bounciness" type="float" setter="set_bounciness" getter="get_bounciness" default="0.0">
+			The body's bounciness. Values range from [code]0.0[/code] (no bounce) to [code]1.0[/code] (full bounciness).
+		</member>
+		<member name="desired_body_id" type="int" setter="set_desired_body_id" getter="get_desired_body_id">
+			The desired body's jolt ID.
+		</member>
+		<member name="friction" type="float" setter="set_friction" getter="get_friction" default="0.2">
+			The body's friction. Values range from [code]0.0[/code] (frictionless) to [code]1.0[/code] (maximum friction).
+		</member>
+		<member name="gravity_scale" type="float" setter="set_gravity_scale" getter="get_gravity_scale" default="1.0">
+			The gravity scale of this body.
+		</member>
+		<member name="jolt_sync_data" type="PackedByteArray" setter="jolt_set_state" getter="jolt_get_state">
+			A vector containing the body's state. For internal use only.
+		</member>
+		<member name="kinematic_detect_static" type="bool" setter="set_kinematic_detect_static" getter="get_kinematic_detect_static" default="false">
+			When true, this body will be able to detect non-moving objects when it moves with kinematic motion. This can be used to make sensor bodies detect static objects when the sensor body moves. Note that the sensor must be kinematic and active for it to detect static objects.
+		</member>
+		<member name="linear_damping" type="float" setter="set_linear_damping" getter="get_linear_damping" default="0.05">
+			The body's linear damping.
+		</member>
+		<member name="linear_velocity" type="Vector3" setter="set_linear_velocity" getter="get_linear_velocity" default="Vector3(0, 0, 0)">
+			The body's linear velocity in meters per second.
+		</member>
+		<member name="mass" type="float" setter="set_mass" getter="get_mass" default="1.0">
+			The body's mass in kilograms.
+		</member>
+		<member name="max_angular_velocity_degree" type="float" setter="set_max_angular_velocity_degree" getter="get_max_angular_velocity_degree" default="2700.0">
+			The body's max angular velocity.
+		</member>
+		<member name="max_linear_velocity" type="float" setter="set_max_linear_velocity" getter="get_max_linear_velocity" default="500.0">
+			The body's max linear velocity.
+		</member>
+		<member name="report_precise_touch_location" type="bool" setter="set_report_precise_touch_location" getter="get_report_precise_touch_location" default="false">
+			When true the hit events generated by this body will have precise hit location at cost of performances.
+		</member>
+		<member name="shape" type="JShape3D" setter="set_shape" getter="get_shape">
+			The body's shape.
+		</member>
+		<member name="use_ccd" type="bool" setter="set_use_ccd" getter="get_use_ccd" default="false">
+		</member>
+	</members>
+	<signals>
+		<signal name="body_created">
+			<description>
+				This event is emitted when the internal Jolt body is created.
+			</description>
+		</signal>
+		<signal name="body_destroyed">
+			<description>
+				This event is emitted when the internal Jolt body is destroyed.
+			</description>
+		</signal>
+		<signal name="body_entered_trigger">
+			<param index="0" name="other_body" type="Object" />
+			<description>
+				Emits when this body enters a trigger.
+			</description>
+		</signal>
+		<signal name="body_exited_trigger">
+			<param index="0" name="other_body" type="Object" />
+			<description>
+				Emits when this body exit a trigger.
+			</description>
+		</signal>
+		<signal name="overlap_end">
+			<param index="0" name="other_body_id" type="int" />
+			<param index="1" name="other_body" type="Object" />
+			<description>
+				Emits when a body exits this trigger.
+			</description>
+		</signal>
+		<signal name="overlap_start">
+			<param index="0" name="other_body_id" type="int" />
+			<param index="1" name="other_body" type="Object" />
+			<description>
+				Emits when a body enters this trigger.
+			</description>
+		</signal>
+		<signal name="start_updating">
+			<description>
+				Emits on client when this body becomes relevant and updated by the NetSync.
+			</description>
+		</signal>
+		<signal name="stop_updating">
+			<description>
+				Emits on client when this body becomes unrelevant and the NetSync stops updating it.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="STATIC" value="0" enum="BodyMode">
+			When using this BodyMode, the body will not move under any force. It can be teleported though.
+		</constant>
+		<constant name="KINEMATIC" value="1" enum="BodyMode">
+			When using this BodyMode, the body will move according to its velocity. However, the velocity must be changed manually because other bodies don't alter its velocity, even after an hit.
+		</constant>
+		<constant name="DYNAMIC" value="2" enum="BodyMode">
+			When using this BodyMode, the body will move according to its velocity and other bodies can influence its motion.
+		</constant>
+		<constant name="SENSOR" value="3" enum="BodyMode">
+			When using this BodyMode, the body becomes a sensor (area / trigger) that can emits overlap events.
+		</constant>
+		<constant name="SENSOR_ONLY_ACTIVE" value="4" enum="BodyMode">
+			When using this BodyMode, like SENSOR but can detects only bodies that are not sleeping. When an overlapping body goes to sleep the [signal overlap_end] signal is emitted.
+		</constant>
+	</constants>
+</class>

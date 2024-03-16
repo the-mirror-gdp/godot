@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JMeshShape3D" inherits="JShape3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D concave trimesh shape used for physics collision.
+	</brief_description>
+	<description>
+		A 3D concave trimesh shape defined by a set of triangles. This is the Jolt version of Godot's [ConcavePolygonShape3D].
+		This shape type can only be used with solid static objects. It will not work with dynamic, kinematic, or trigger objects.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="double_sided" type="bool" setter="set_double_sided" getter="get_double_sided" default="true">
+		</member>
+		<member name="faces" type="PackedVector3Array" setter="set_faces" getter="get_faces" default="PackedVector3Array()">
+		</member>
+	</members>
+</class>

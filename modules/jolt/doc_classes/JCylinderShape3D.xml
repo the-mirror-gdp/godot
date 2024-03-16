@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JCylinderShape3D" inherits="JShape3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D cylinder shape used for physics collision.
+	</brief_description>
+	<description>
+		A 3D cylinder shape defined by a radius and height. This is the Jolt version of Godot's [CylinderShape3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="height" type="float" setter="set_height" getter="get_height" default="2.0">
+			The cylinder's height.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.5">
+			The cylinder's radius.
+		</member>
+	</members>
+</class>

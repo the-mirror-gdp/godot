@@ -238,6 +238,18 @@
 		</method>
 	</methods>
 	<members>
+		<member name="NetworkSynchronizer/debug_server_speedup" type="bool" setter="" getter="" default="false">
+		</member>
+		<member name="NetworkSynchronizer/debugger/dump_classes" type="Array" setter="" getter="" default="[]">
+		</member>
+		<member name="NetworkSynchronizer/debugger/dump_enabled" type="bool" setter="" getter="" default="false">
+		</member>
+		<member name="NetworkSynchronizer/log_debug_nodes_relevancy_update" type="bool" setter="" getter="" default="false">
+		</member>
+		<member name="NetworkSynchronizer/log_debug_rewindings" type="bool" setter="" getter="" default="false">
+		</member>
+		<member name="NetworkSynchronizer/log_level" type="int" setter="" getter="" default="3">
+		</member>
 		<member name="animation/warnings/check_angle_interpolation_type_conflicting" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], [AnimationMixer] prints the warning of interpolation being forced to choose the shortest rotation path due to multiple angle interpolation types being mixed in the [AnimationMixer] cache.
 		</member>
@@ -1477,6 +1489,16 @@
 			[b]Note:[/b] The driver in use can be overridden at runtime via the [code]--text-driver[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url].
 			[b]Note:[/b] There is an additional [code]Dummy[/code] text driver available, which disables all text rendering and font-related functionality. This driver is not listed in the project settings, but it can be enabled when running the editor or project using the [code]--text-driver Dummy[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url].
 		</member>
+		<member name="jolt/config/layers_table" type="String" setter="" getter="" default="&quot;&quot;">
+		</member>
+		<member name="jolt/main_world_config/max_bodies" type="int" setter="" getter="" default="10000">
+		</member>
+		<member name="jolt/main_world_config/max_body_pairs" type="int" setter="" getter="" default="10000">
+		</member>
+		<member name="jolt/main_world_config/max_contact_constraints" type="int" setter="" getter="" default="10000">
+		</member>
+		<member name="jolt/main_world_config/num_body_mutex" type="int" setter="" getter="" default="0">
+		</member>
 		<member name="layer_names/2d_navigation/layer_1" type="String" setter="" getter="" default="&quot;&quot;">
 			Optional name for the 2D navigation layer 1. If left empty, the layer will display as "Layer 1".
 		</member>
@@ -2079,6 +2101,24 @@
 		</member>
 		<member name="memory/limits/message_queue/max_size_mb" type="int" setter="" getter="" default="32">
 			Godot uses a message queue to defer some function calls. If you run out of space on it (you will see an error), you can increase the size here.
+		</member>
+		<member name="mirror/attenuation_range_max" type="float" setter="" getter="" default="30.0">
+		</member>
+		<member name="mirror/attenuation_range_min" type="float" setter="" getter="" default="20.0">
+		</member>
+		<member name="mirror/audio_streams_count" type="int" setter="" getter="" default="20">
+		</member>
+		<member name="mirror/base_volume_multiplier" type="float" setter="" getter="" default="1.0">
+		</member>
+		<member name="mirror/mass_pitch_multiplier" type="float" setter="" getter="" default="0.4">
+		</member>
+		<member name="mirror/max_mass_pitch_multiplier" type="float" setter="" getter="" default="20.0">
+		</member>
+		<member name="mirror/max_speed_kmh_volume_multiplier" type="float" setter="" getter="" default="20.0">
+		</member>
+		<member name="mirror/min_speed_kmh_volume_multiplier" type="float" setter="" getter="" default="2.0">
+		</member>
+		<member name="mirror/random_pitch" type="float" setter="" getter="" default="0.2">
 		</member>
 		<member name="navigation/2d/default_cell_size" type="float" setter="" getter="" default="1.0">
 			Default cell size for 2D navigation maps. See [method NavigationServer2D.map_set_cell_size].

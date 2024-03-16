@@ -1845,6 +1845,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	ResourceUID::get_singleton()->load_from_cache(true); // load UUIDs from cache.
 
+#ifdef MODULE_APP_PROTOCOL_ENABLED
 	// Deeplinking must be here as the client must have a valid project settings pointer which actually contains
 	// The non default configuration from the app, otherwise the client will flakily initialise deeplinking
 	if (uri_passed && !uri_data.is_empty()) {
@@ -1855,6 +1856,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			goto error;
 		}
 	}
+#endif // MODULE_APP_PROTOCOL_ENABLED
 
 	if (ProjectSettings::get_singleton()->has_custom_feature("dedicated_server")) {
 		audio_driver = NULL_AUDIO_DRIVER;

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JBoxShape3D" inherits="JShape3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 3D box shape used for physics collision.
+	</brief_description>
+	<description>
+		A 3D box shape defined by a width, height and depth. This is the Jolt version of Godot's [BoxShape3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="size" type="Vector3" setter="set_size" getter="get_size" default="Vector3(1, 1, 1)">
+			The box's width, height and depth.
+		</member>
+	</members>
+</class>

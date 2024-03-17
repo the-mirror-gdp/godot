@@ -114,6 +114,8 @@
 #endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
 
+#include "modules/modules_enabled.gen.h"
+
 #if defined(STEAMAPI_ENABLED)
 #include "main/steam_tracker.h"
 #endif
@@ -135,6 +137,14 @@
 #ifdef MODULE_APP_PROTOCOL_ENABLED
 #include "modules/app_protocol/app_protocol.h"
 #endif // MODULE_APP_PROTOCOL_ENABLED
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#else
+// Dummy defines to allow compiling without tracy.
+#define ZoneScoped
+#define ZoneScopedN(a)
+#endif // MODULE_GODOT_TRACY_ENABLED
 
 /* Static members */
 
@@ -4028,6 +4038,7 @@ static uint64_t navigation_process_max = 0;
 // will terminate the program. In case of failure, the OS exit code needs
 // to be set explicitly here (defaults to EXIT_SUCCESS).
 bool Main::iteration() {
+	ZoneScoped;
 	iterating++;
 
 	const uint64_t ticks = OS::get_singleton()->get_ticks_usec();
@@ -4073,63 +4084,87 @@ bool Main::iteration() {
 	NavigationServer2D::get_singleton()->sync();
 	NavigationServer3D::get_singleton()->sync();
 
-	for (int iters = 0; iters < advance.physics_steps; ++iters) {
-		if (Input::get_singleton()->is_agile_input_event_flushing()) {
-			Input::get_singleton()->flush_buffered_events();
-		}
+	{
+		ZoneScopedN("PHYSICS LOOP");
+		for (int iters = 0; iters < advance.physics_steps; ++iters) {
+			if (Input::get_singleton()->is_agile_input_event_flushing()) {
+				Input::get_singleton()->flush_buffered_events();
+			}
 
 		Engine::get_singleton()->_in_physics = true;
 		Engine::get_singleton()->_physics_frames++;
 
-		uint64_t physics_begin = OS::get_singleton()->get_ticks_usec();
+				uint64_t physics_begin = OS::get_singleton()->get_ticks_usec();
 
-#ifndef _3D_DISABLED
-		PhysicsServer3D::get_singleton()->sync();
-		PhysicsServer3D::get_singleton()->flush_queries();
-#endif // _3D_DISABLED
+	#ifndef _3D_DISABLED
+				{
+					ZoneScopedN("Godot physics 3D - sync");
+					PhysicsServer3D::get_singleton()->sync();
+					PhysicsServer3D::get_singleton()->flush_queries();
+				}
+	#endif // _3D_DISABLED
 
-		// Prepare the fixed timestep interpolated nodes BEFORE they are updated
-		// by the physics server, otherwise the current and previous transforms
-		// may be the same, and no interpolation takes place.
-		OS::get_singleton()->get_main_loop()->iteration_prepare();
+				// Prepare the fixed timestep interpolated nodes BEFORE they are updated
+				// by the physics server, otherwise the current and previous transforms
+				// may be the same, and no interpolation takes place.
+				OS::get_singleton()->get_main_loop()->iteration_prepare();
 
-		PhysicsServer2D::get_singleton()->sync();
-		PhysicsServer2D::get_singleton()->flush_queries();
+				{
+					ZoneScopedN("Godot physics 2D - sync");
+					PhysicsServer2D::get_singleton()->sync();
+					PhysicsServer2D::get_singleton()->flush_queries();
+				}
 
-		if (OS::get_singleton()->get_main_loop()->physics_process(physics_step * time_scale)) {
-#ifndef _3D_DISABLED
-			PhysicsServer3D::get_singleton()->end_sync();
-#endif // _3D_DISABLED
-			PhysicsServer2D::get_singleton()->end_sync();
+				{
+					ZoneScopedN("physics_process");
 
-			exit = true;
-			break;
+					if (OS::get_singleton()->get_main_loop()->physics_process(physics_step * time_scale)) {
+	#ifndef _3D_DISABLED
+						PhysicsServer3D::get_singleton()->end_sync();
+	#endif // _3D_DISABLED
+						PhysicsServer2D::get_singleton()->end_sync();
+
+						exit = true;
+						break;
+					}
+				}
+
+				uint64_t navigation_begin = OS::get_singleton()->get_ticks_usec();
+
+				{
+					ZoneScopedN("Navigation process");
+					NavigationServer3D::get_singleton()->process(physics_step * time_scale);
+				}
+
+				navigation_process_ticks = MAX(navigation_process_ticks, OS::get_singleton()->get_ticks_usec() - navigation_begin); // keep the largest one for reference
+				navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
+
+				message_queue->flush();
+
+	#ifndef _3D_DISABLED
+				{
+					ZoneScopedN("Godot physics 3D - step");
+					PhysicsServer3D::get_singleton()->end_sync();
+					PhysicsServer3D::get_singleton()->step(physics_step * time_scale);
+				}
+	#endif // _3D_DISABLED
+
+				{
+					ZoneScopedN("Godot physics 2D - step");
+					PhysicsServer2D::get_singleton()->end_sync();
+					PhysicsServer2D::get_singleton()->step(physics_step * time_scale);
+				}
+
+				message_queue->flush();
+
+			physics_process_ticks = MAX(physics_process_ticks, OS::get_singleton()->get_ticks_usec() - physics_begin); // keep the largest one for reference
+			physics_process_max = MAX(OS::get_singleton()->get_ticks_usec() - physics_begin, physics_process_max);
+			Engine::get_singleton()->_physics_frames++;
+			Engine::get_singleton()->_in_physics = false;
 		}
-
-		uint64_t navigation_begin = OS::get_singleton()->get_ticks_usec();
-
-		NavigationServer3D::get_singleton()->process(physics_step * time_scale);
-
-		navigation_process_ticks = MAX(navigation_process_ticks, OS::get_singleton()->get_ticks_usec() - navigation_begin); // keep the largest one for reference
-		navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
-
-		message_queue->flush();
-
-#ifndef _3D_DISABLED
-		PhysicsServer3D::get_singleton()->end_sync();
-		PhysicsServer3D::get_singleton()->step(physics_step * time_scale);
-#endif // _3D_DISABLED
-
-		PhysicsServer2D::get_singleton()->end_sync();
-		PhysicsServer2D::get_singleton()->step(physics_step * time_scale);
-
-		message_queue->flush();
-
-		physics_process_ticks = MAX(physics_process_ticks, OS::get_singleton()->get_ticks_usec() - physics_begin); // keep the largest one for reference
-		physics_process_max = MAX(OS::get_singleton()->get_ticks_usec() - physics_begin, physics_process_max);
-
-		Engine::get_singleton()->_in_physics = false;
 	}
+	
+
 
 	if (Input::get_singleton()->is_agile_input_event_flushing()) {
 		Input::get_singleton()->flush_buffered_events();
@@ -4137,24 +4172,30 @@ bool Main::iteration() {
 
 	uint64_t process_begin = OS::get_singleton()->get_ticks_usec();
 
-	if (OS::get_singleton()->get_main_loop()->process(process_step * time_scale)) {
-		exit = true;
+	{
+		ZoneScopedN("Main process");
+		if (OS::get_singleton()->get_main_loop()->process(process_step * time_scale)) {
+			exit = true;
+		}
 	}
 	message_queue->flush();
 
-	RenderingServer::get_singleton()->sync(); //sync if still drawing from previous frames.
+	{
+		ZoneScopedN("Main::iteration - Draw");
+		RenderingServer::get_singleton()->sync(); //sync if still drawing from previous frames.
 
-	if ((DisplayServer::get_singleton()->can_any_window_draw() || DisplayServer::get_singleton()->has_additional_outputs()) &&
-			RenderingServer::get_singleton()->is_render_loop_enabled()) {
-		if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
-			if (RenderingServer::get_singleton()->has_changed()) {
+		if ((DisplayServer::get_singleton()->can_any_window_draw() || DisplayServer::get_singleton()->has_additional_outputs()) &&
+				RenderingServer::get_singleton()->is_render_loop_enabled()) {
+			if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
+				if (RenderingServer::get_singleton()->has_changed()) {
+					RenderingServer::get_singleton()->draw(true, scaled_step); // flush visual commands
+					Engine::get_singleton()->increment_frames_drawn();
+				}
+			} else {
 				RenderingServer::get_singleton()->draw(true, scaled_step); // flush visual commands
 				Engine::get_singleton()->increment_frames_drawn();
+				force_redraw_requested = false;
 			}
-		} else {
-			RenderingServer::get_singleton()->draw(true, scaled_step); // flush visual commands
-			Engine::get_singleton()->increment_frames_drawn();
-			force_redraw_requested = false;
 		}
 	}
 
@@ -4162,11 +4203,17 @@ bool Main::iteration() {
 	process_max = MAX(process_ticks, process_max);
 	uint64_t frame_time = OS::get_singleton()->get_ticks_usec() - ticks;
 
-	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-		ScriptServer::get_language(i)->frame();
+	{
+		ZoneScopedN("Languages update");
+		for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+			ScriptServer::get_language(i)->frame();
+		}
 	}
 
-	AudioServer::get_singleton()->update();
+	{
+		ZoneScopedN("Audio update");
+		AudioServer::get_singleton()->update();
+	}
 
 	if (EngineDebugger::is_active()) {
 		EngineDebugger::get_singleton()->iteration(frame_time, process_ticks, physics_process_ticks, physics_step);
@@ -4227,7 +4274,10 @@ bool Main::iteration() {
 		return exit;
 	}
 
-	OS::get_singleton()->add_frame_delay(DisplayServer::get_singleton()->window_can_draw());
+	{
+		ZoneScopedN("Frame delay");
+		OS::get_singleton()->add_frame_delay(DisplayServer::get_singleton()->window_can_draw());
+	}
 
 #ifdef TOOLS_ENABLED
 	if (auto_build_solutions) {

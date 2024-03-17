@@ -66,6 +66,16 @@
 #pragma pack(pop, before_imagehlp)
 #endif
 
+#include "modules/modules_enabled.gen.h"
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#else
+// Dummy defines to allow compiling without tracy.
+#define FrameMark
+#define ZoneScoped
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
@@ -1662,6 +1672,9 @@ void OS_Windows::run() {
 	main_loop->initialize();
 
 	while (true) {
+		FrameMark;
+		ZoneScoped;
+
 		DisplayServer::get_singleton()->process_events(); // get rid of pending events
 		if (Main::iteration()) {
 			break;

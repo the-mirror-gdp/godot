@@ -39,6 +39,12 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 
+#include "modules/modules_enabled.gen.h"
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 typedef void (*VariantFunc)(Variant &r_ret, Variant &p_self, const Variant **p_args);
 typedef void (*VariantConstructFunc)(Variant &r_ret, const Variant **p_args);
 
@@ -1194,6 +1200,12 @@ static void register_builtin_method(const Vector<String> &p_argnames, const Vect
 }
 
 void Variant::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Variant &r_ret, Callable::CallError &r_error) {
+#ifdef MODULE_GODOT_TRACY_ENABLED
+	ZoneScoped;
+	CharString c = Profiler::stringify_method(p_method, p_args, p_argcount);
+	ZoneName(c.ptr(), c.size());
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 	if (type == Variant::OBJECT) {
 		//call object
 		Object *obj = _get_obj().obj;

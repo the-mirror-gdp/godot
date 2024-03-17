@@ -42,6 +42,12 @@
 #include "core/templates/local_vector.h"
 #include "core/variant/typed_array.h"
 
+#include "modules/modules_enabled.gen.h"
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 #ifdef DEBUG_ENABLED
 
 struct _ObjectDebugLock {
@@ -751,6 +757,12 @@ Variant Object::callv(const StringName &p_method, const Array &p_args) {
 }
 
 Variant Object::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+#ifdef MODULE_GODOT_TRACY_ENABLED
+	ZoneScoped;
+	CharString c = Profiler::stringify_method(p_method, p_args, p_argcount);
+	ZoneName(c.ptr(), c.size());
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 	r_error.error = Callable::CallError::CALL_OK;
 
 	if (p_method == CoreStringName(free_)) {
@@ -814,6 +826,12 @@ Variant Object::callp(const StringName &p_method, const Variant **p_args, int p_
 }
 
 Variant Object::call_const(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+#ifdef MODULE_GODOT_TRACY_ENABLED
+	ZoneScoped;
+	CharString c = Profiler::stringify_method(p_method, p_args, p_argcount);
+	ZoneName(c.ptr(), c.size());
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 	r_error.error = Callable::CallError::CALL_OK;
 
 	if (p_method == CoreStringName(free_)) {

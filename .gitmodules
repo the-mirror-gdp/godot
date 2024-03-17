@@ -7,3 +7,6 @@
 [submodule "modules/jolt/thirdparty/mimalloc"]
 	path = modules/jolt/thirdparty/mimalloc
 	url = https://github.com/microsoft/mimalloc.git
+[submodule "modules/godot_tracy"]
+	path = modules/godot_tracy
+	url = https://github.com/AndreaCatania/godot_tracy.git

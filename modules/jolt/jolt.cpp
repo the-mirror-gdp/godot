@@ -43,6 +43,16 @@
 #include "scene/resources/physics_material.h"
 #include "state_recorder_sync.h"
 
+#include "modules/modules_enabled.gen.h"
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#else
+// Dummy defines to allow compiling without tracy.
+#define ZoneScoped
+#define ZoneScopedN(a)
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 Jolt *Jolt::the_singleton = nullptr;
 
 Jolt *Jolt::singleton() {
@@ -239,6 +249,7 @@ void Jolt::world_unregister_sensor(JBody3D *p_sensor) {
 }
 
 void Jolt::world_process(uint32_t p_world_id, double p_delta) {
+	ZoneScoped;
 	JPH::PhysicsSystem *physics_system = worlds[p_world_id];
 
 	if (worlds_need_broadphase_opt[p_world_id]) {
@@ -304,12 +315,14 @@ bool Jolt::world_is_processing(uint32_t p_world_id) const {
 }
 
 void Jolt::world_get_state(uint32_t p_world_id, class StateRecorderSync &p_state, JPH::EStateRecorderState p_recorder_state, const JPH::StateRecorderFilter *p_filter) {
+	ZoneScoped;
 	JPH::PhysicsSystem *physics_system = worlds[p_world_id];
 
 	CRASH_COND_MSG(p_state.IsFailed(), "The state shound not be failed at this point.");
 
 	p_state.Clear();
 	{
+		ZoneScopedN("PhysicsSystem::SaveState");
 		physics_system->SaveState(p_state, p_recorder_state, p_filter);
 	}
 
@@ -386,6 +399,7 @@ JPH::Body *Jolt::create_body(
 		real_t p_max_angular_velocity_deg,
 		real_t p_gravity_scale,
 		bool p_use_ccd) {
+	ZoneScoped;
 	JPH::RVec3 origin = convert_r(p_body_initial_transform.get_origin());
 	JPH::Quat rot = convert(p_body_initial_transform.get_basis().get_rotation_quaternion());
 	JPH::Vec3 scale = convert(p_body_initial_transform.get_basis().get_scale_abs());
@@ -1059,6 +1073,7 @@ void Jolt::collide_sphere_broad_phase(
 JPH::Ref<JPH::CharacterVirtual> Jolt::create_character_virtual(
 		const JPH::RMat44 &p_transform,
 		JPH::CharacterVirtualSettings *p_settings) {
+	ZoneScoped;
 	JPH::PhysicsSystem *physics_system = worlds[0];
 
 	return JPH::Ref<JPH::CharacterVirtual>(
@@ -1075,6 +1090,7 @@ void Jolt::character_virtual_pre_step(
 		JPH::CharacterVirtual *p_character,
 		JPH::ObjectLayer p_layer_id,
 		const LocalVector<uint32_t> &p_ignore_bodies) {
+	ZoneScoped;
 	const JPH::DefaultBroadPhaseLayerFilter broad_phase_layer_filter(object_vs_broad_phase_layer_filter, p_layer_id);
 	TableObjectLayerFilter object_layer_filter;
 	object_layer_filter.layer = p_layer_id;
@@ -1096,6 +1112,7 @@ void Jolt::character_virtual_step(
 		JPH::CharacterVirtual::ExtendedUpdateSettings &p_update_settings,
 		JPH::ObjectLayer p_layer_id,
 		const LocalVector<uint32_t> &p_ignore_bodies) {
+	ZoneScoped;
 	JPH::PhysicsSystem *physics_system = worlds[0];
 
 	const JPH::DefaultBroadPhaseLayerFilter broad_phase_layer_filter(object_vs_broad_phase_layer_filter, p_layer_id);

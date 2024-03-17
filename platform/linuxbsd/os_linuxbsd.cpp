@@ -58,6 +58,16 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#include "modules/modules_enabled.gen.h"
+
+#ifdef MODULE_GODOT_TRACY_ENABLED
+#include "modules/godot_tracy/profiler.h"
+#else
+// Dummy defines to allow compiling without tracy.
+#define FrameMark
+#define ZoneScoped
+#endif // MODULE_GODOT_TRACY_ENABLED
+
 #ifdef HAVE_MNTENT
 #include <mntent.h>
 #endif
@@ -955,6 +965,9 @@ void OS_LinuxBSD::run() {
 	//uint64_t frame=0;
 
 	while (true) {
+		FrameMark;
+		ZoneScoped;
+
 		DisplayServer::get_singleton()->process_events(); // get rid of pending events
 #ifdef JOYDEV_ENABLED
 		joypad->process_joypads();

@@ -87,11 +87,18 @@ elif env["platform"] == "macos":
 elif env["platform"] == "android":
     #cmake_platform_opts += ' -DANDROID_NDK_VERSION=23.2.8568313'
     cmake_platform_opts += ' -DCMAKE_SYSTEM_NAME=Android'
-    cmake_platform_opts += ' -DCMAKE_SYSTEM_VERSION=23'
+    cmake_platform_opts += ' -DCMAKE_SYSTEM_VERSION=24'
+    cmake_platform_opts += ' -DANDROID_ABI=arm64-v8a'
+    cmake_platform_opts += ' -DANDROID_NDK=/Users/gordon/Library/Android/sdk/ndk/23.2.8568313'
+    cmake_platform_opts += ' -DCMAKE_ANDROID_STL_TYPE=c++_shared'
+    cmake_platform_opts += ' -DANDROID_STL=c++_shared'
     cmake_platform_opts += ' -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a'
+    cmake_platform_opts += ' -DCMAKE_TOOLCHAIN_FILE=/Users/gordon/Library/Android/Sdk/ndk/23.2.8568313/build/cmake/android.toolchain.cmake'
     cmake_platform_opts += ' -DCMAKE_ANDROID_NDK=/Users/gordon/Library/Android/sdk/ndk/23.2.8568313'
     cmake_platform_opts += ' -DANDROID_ARM_NEON=ON'
+    cmake_platform_opts += ' -DANDROID_PLATFORM=android-24'
     cmake_platform_opts += ' -DCMAKE_ANDROID_NDK_TOOLCHAIN_VERSION=clang'
+    cmake_platform_opts += ' -DCMAKE_CXX_FLAGS="-fPIC"'
     cmake_generator_type = '"Unix Makefiles"'
 
 elif env["platform"] == "windows":
@@ -171,6 +178,7 @@ cmake_opts += " -DMI_BUILD_SHARED=OFF "
 cmake_opts += " -DMI_BUILD_OBJECT=OFF "
 cmake_opts += " -DMI_BUILD_TESTS=OFF "
 cmake_opts += " -DMI_OVERRIDE=OFF "
+cmake_opts += " -DMI_USE_CXX=OFF "
 if env["platform"] == "windows":
     cmake_opts += " -DCMAKE_CXX_FLAGS_RELEASE=/MT"
     cmake_opts += " -DCMAKE_C_FLAGS_RELEASE=/MT"

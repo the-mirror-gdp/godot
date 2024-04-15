@@ -84,6 +84,10 @@ elif env["platform"] == "macos":
     elif env["arch"] == "x86_64":
         cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15" '
 
+elif env["platform"] == "android":
+    cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="aarch64" -DCROSS_COMPILE_ARM=1'
+    cmake_generator_type = '"Unix Makefiles"'
+
 elif env["platform"] == "windows":
     cmake_generator_type = "Ninja"
 

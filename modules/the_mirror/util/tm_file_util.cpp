@@ -180,17 +180,18 @@ Node *TMFileUtil::load_gltf_file_as_node(const String &p_path, const bool p_disc
 	}
 	Error err = gltf_document->append_from_file(p_path, gltf_state, 8);
 	if (err != Error::OK) {
-		ERR_PRINT("TMFileUtil: Failed to load GLTF file from disk, error: " + itos(err));
+		ERR_PRINT("TMFileUtil: Failed to load GLTF file from disk, error: " + itos(err) + " " + p_path);
 		return nullptr;
 	}
 	Node *node = gltf_document->generate_scene(gltf_state);
 	if (node == nullptr) {
-		ERR_PRINT("TMFileUtil: Failed to generate a Godot scene from GLTF data, error: " + itos(err));
+		ERR_PRINT("TMFileUtil: Failed to generate a Godot scene from GLTF data, error: " + itos(err) + " " + p_path);
 		return nullptr;
 	}
 	// Disallow importing a model with an empty root node name.
 	if (node->get_name() == StringName()) {
-		node->set_name(StringName("Model"));
+		ERR_PRINT("TMFileUtil: You must have a valid node name on your GLTF file, the name was empty " + p_path);
+		return nullptr;
 	}
 	return node;
 }

@@ -84,6 +84,32 @@ elif env["platform"] == "macos":
     elif env["arch"] == "x86_64":
         cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15" '
 
+elif env["platform"] == "android":
+    android_abi = ""
+    if env["arch"] == "arm32":
+        android_abi = "armeabi-v7a"
+    elif env["arch"] == "arm64":
+        android_abi = "arm64-v8a"
+    elif env["arch"] == "x86_32":
+        android_abi = "x86"
+    elif env["arch"] == "x86_64":
+        android_abi = "x86_64"
+    android_ndk = env["ANDROID_NDK_ROOT"]
+    cmake_platform_opts += ' -DCMAKE_SYSTEM_NAME=Android'
+    cmake_platform_opts += ' -DCMAKE_SYSTEM_VERSION=24'
+    cmake_platform_opts += ' -DANDROID_ABI=' + android_abi
+    cmake_platform_opts += ' -DANDROID_NDK=' + android_ndk
+    cmake_platform_opts += ' -DCMAKE_ANDROID_STL_TYPE=c++_shared'
+    cmake_platform_opts += ' -DANDROID_STL=c++_shared'
+    cmake_platform_opts += ' -DCMAKE_ANDROID_ARCH_ABI=' + android_abi
+    cmake_platform_opts += ' -DCMAKE_TOOLCHAIN_FILE=' + android_ndk + '/build/cmake/android.toolchain.cmake'
+    cmake_platform_opts += ' -DCMAKE_ANDROID_NDK=' + android_ndk
+    cmake_platform_opts += ' -DANDROID_ARM_NEON=ON'
+    cmake_platform_opts += ' -DANDROID_PLATFORM=' + env["ndk_platform"]
+    cmake_platform_opts += ' -DCMAKE_ANDROID_NDK_TOOLCHAIN_VERSION=clang'
+    cmake_platform_opts += ' -DCMAKE_CXX_FLAGS="-fPIC"'
+    cmake_generator_type = '"Unix Makefiles"'
+
 elif env["platform"] == "windows":
     cmake_generator_type = "Ninja"
 
@@ -161,6 +187,7 @@ cmake_opts += " -DMI_BUILD_SHARED=OFF "
 cmake_opts += " -DMI_BUILD_OBJECT=OFF "
 cmake_opts += " -DMI_BUILD_TESTS=OFF "
 cmake_opts += " -DMI_OVERRIDE=OFF "
+cmake_opts += " -DMI_USE_CXX=OFF "
 if env["platform"] == "windows":
     cmake_opts += " -DCMAKE_CXX_FLAGS_RELEASE=/MT"
     cmake_opts += " -DCMAKE_C_FLAGS_RELEASE=/MT"

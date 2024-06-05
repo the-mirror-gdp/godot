@@ -44,6 +44,8 @@ cmake_opts += " -DTARGET_VIEWER=OFF "
 cmake_opts += " -DTARGET_UNIT_TESTS=OFF "
 cmake_opts += " -DTARGET_PERFORMANCE_TEST=OFF "
 cmake_opts += " -DDEBUG_RENDERER_IN_DISTRIBUTION=ON "
+# disabled due to MSVC incompatibility with latest MSVC on windows
+cmake_opts += " -DENABLE_ALL_WARNINGS=OFF "
 
 # TODO enable SIMD again - ASAP
 # Disables all the SIMD optimizations because at the moment we are unable to properly

@@ -9,7 +9,7 @@ Import("env_modules")
 compiler = ""
 jolt_build_dir = os.path.join(".", "thirdparty", "JoltPhysics", "Build")
 out_build_dir = "JOLT_BUILD"
-cmake_generator_type = ""
+cmake_generator_type = "Ninja"
 cpu_count = multiprocessing.cpu_count()
 
 cmake_opts = ""
@@ -110,7 +110,7 @@ elif env["platform"] == "android":
     cmake_platform_opts += ' -DANDROID_PLATFORM=' + env["ndk_platform"]
     cmake_platform_opts += ' -DCMAKE_ANDROID_NDK_TOOLCHAIN_VERSION=clang'
     cmake_platform_opts += ' -DCMAKE_CXX_FLAGS="-fPIC"'
-    cmake_generator_type = '"Unix Makefiles"'
+    # cmake_generator_type = '"Unix Makefiles"'
 
 elif env["platform"] == "windows":
     cmake_generator_type = "Ninja"

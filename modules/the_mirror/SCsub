@@ -47,17 +47,11 @@ if jolt_build_type == "Debug":
     env_themirror_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
     env_themirror_module.Append(CPPDEFINES=[("_DEBUG", 1)])
     env_themirror_module.Append(CPPDEFINES=[("JPH_ENABLE_ASSERTS", 1)])
-    if env["platform"] == "windows":
-        # On Windows, in debug mode, this is enabled too.
-        env_themirror_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
 
 elif jolt_build_type == "Release":
     env_themirror_module.Append(CPPDEFINES=[("NDEBUG", 1)])
     env_themirror_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
     env_themirror_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
-    if env["platform"] == "windows":
-        # On Windows, in release mode, this is enabled too.
-        env_themirror_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
 
 else:
     env_themirror_module.Append(CPPDEFINES=[("NDEBUG", 1)])

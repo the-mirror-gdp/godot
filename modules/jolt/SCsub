@@ -44,6 +44,7 @@ cmake_opts += " -DTARGET_VIEWER=OFF "
 cmake_opts += " -DTARGET_UNIT_TESTS=OFF "
 cmake_opts += " -DTARGET_PERFORMANCE_TEST=OFF "
 cmake_opts += " -DDEBUG_RENDERER_IN_DISTRIBUTION=ON "
+cmake_opts += " -DFLOATING_POINT_EXCEPTIONS_ENABLED=OFF "
 # disabled due to MSVC incompatibility with latest MSVC on windows
 cmake_opts += " -DENABLE_ALL_WARNINGS=OFF "
 
@@ -157,18 +158,12 @@ if jolt_build_type == "Debug":
     jolt_physics_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
     jolt_physics_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
     jolt_physics_module.Append(CPPDEFINES=[("_DEBUG", 1)])
-    jolt_physics_module.Append(CPPDEFINES=[("JPH_ENABLE_ASSERTS", 1)])
-    if env["platform"] == "windows":
-        # On Windows, in debug mode, this is enabled too.
-        jolt_physics_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_ENABLE_ASSERTS", 0)])
 
 elif jolt_build_type == "Release":
     jolt_physics_module.Append(CPPDEFINES=[("NDEBUG", 1)])
     jolt_physics_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
     jolt_physics_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
-    if env["platform"] == "windows":
-        # On Windows, in debug mode, this is enabled too.
-        jolt_physics_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
 
 else:
     jolt_physics_module.Append(CPPDEFINES=[("NDEBUG", 1)])

@@ -426,6 +426,12 @@ void TMSpatialSyncGroups::compute_update_rate(
 
 	TMSpaceObjectBase *so = Object::cast_to<TMSpaceObjectBase>(&p_jbody);
 
+	if(so == nullptr){
+		r_update_rate = 0.0;
+		r_skip_trickled = true;
+		return;
+	}
+
 	if (p_jbody.is_static() || p_jbody.is_sensor()) {
 		const bool need_update = so->static_space_object_sync_group_needs_update(p_group);
 		if (need_update) {

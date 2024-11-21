@@ -179,6 +179,11 @@ void TMCharacter3D::process_character(
 	// Make sure this character doesn't disappear while simulating, no matter what.
 	notify_received_net_sync_update();
 
+	update_virtual_character();
+	if (!virtual_character) {
+		return;
+	}
+
 	if (frozen) {
 		// Nothing to update.
 		const JPH::RVec3 Pos = virtual_character->GetPosition();
@@ -187,11 +192,6 @@ void TMCharacter3D::process_character(
 				Pos,
 				Rot,
 				float(p_delta));
-		return;
-	}
-
-	update_virtual_character();
-	if (!virtual_character) {
 		return;
 	}
 

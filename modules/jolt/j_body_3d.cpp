@@ -1161,9 +1161,8 @@ void JBody3D::__destroy_body() {
 }
 
 void JBody3D::__create_body() {
-	CRASH_COND(body != nullptr);
-	CRASH_COND(shape == nullptr);
-	CRASH_COND(shape->get_shape() == nullptr);
+	ERR_FAIL_COND_MSG(body != nullptr, "Valid Body already set in __create_body. path "+ get_path() +" desired_body_id: " + itos(desired_body_id.GetIndex()));
+	ERR_FAIL_COND_MSG(shape == nullptr || shape->get_shape() == nullptr, "Invalid shape supplied to __create_body.path "+ get_path() +"  desired_body_id: " + itos(desired_body_id.GetIndex()));
 	body = Jolt::singleton()->create_body(
 			this,
 			0,

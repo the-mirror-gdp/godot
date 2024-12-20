@@ -1,0 +1,205 @@
+import os
+import multiprocessing
+
+Import("env")
+Import("env_modules")
+
+# Build the JoltPhysics static library using CMake
+
+compiler = ""
+jolt_build_dir = os.path.join(".", "thirdparty", "JoltPhysics", "Build")
+out_build_dir = "JOLT_BUILD"
+cmake_generator_type = ""
+cpu_count = multiprocessing.cpu_count()
+
+cmake_opts = ""
+
+jolt_build_type = ""
+mimalloc_build_type = ""
+if env.dev_build:
+    jolt_build_type = "Debug"
+    mimalloc_build_type = "Debug"
+elif env["target"] == "editor":
+    jolt_build_type = "Release"
+    mimalloc_build_type = "Release"
+elif env["target"] == "template_debug":
+    jolt_build_type = "Release"
+    mimalloc_build_type = "Release"
+elif env["target"] == "template_release":
+    jolt_build_type = "Distribution"
+    mimalloc_build_type = "Release"
+else:
+    exit("Error, unknown Godot build target `" + env["target"] + "`.")
+
+# Add options
+cmake_opts += " -DCROSS_PLATFORM_DETERMINISTIC=1 "
+cmake_opts += " -DDOUBLE_PRECISION=1 "
+cmake_opts += " -DOBJECT_LAYER_BITS=32 "
+cmake_opts += " -DINTERPROCEDURAL_OPTIMIZATION=1 "
+cmake_opts += " -DCMAKE_EXPORT_COMPILE_COMMANDS=1 "
+cmake_opts += " -DDEBUG_RENDERER=1 "
+cmake_opts += " -DTARGET_SAMPLES=OFF "
+cmake_opts += " -DTARGET_HELLO_WORLD=OFF "
+cmake_opts += " -DTARGET_VIEWER=OFF "
+cmake_opts += " -DTARGET_UNIT_TESTS=OFF "
+cmake_opts += " -DTARGET_PERFORMANCE_TEST=OFF "
+cmake_opts += " -DDEBUG_RENDERER_IN_DISTRIBUTION=ON "
+
+# TODO enable SIMD again - ASAP
+# Disables all the SIMD optimizations because at the moment we are unable to properly
+# define the macros based on the enable OPTIMIZATION: producing a broken ABI.
+# See: https://github.com/jrouwe/JoltPhysics/discussions/585
+cmake_opts += " -DUSE_AVX512=0 "
+cmake_opts += " -DUSE_AVX2=0 "
+cmake_opts += " -DUSE_AVX=0 "
+cmake_opts += " -DUSE_SSE4_2=0 "
+cmake_opts += " -DUSE_SSE4_1=0 "
+cmake_opts += " -DUSE_LZCNT=0 "
+cmake_opts += " -DUSE_TZCNT=0 "
+cmake_opts += " -DUSE_F16C=0 "
+cmake_opts += " -DUSE_FMADD=0 "
+
+if env["platform"] == "windows":
+    cmake_opts += " -DCMAKE_CXX_FLAGS_RELEASE=/MT"
+    cmake_opts += " -DCMAKE_C_FLAGS_RELEASE=/MT"
+    cmake_opts += " -DCMAKE_CC_FLAGS_RELEASE=/MT"
+
+    # This is needed to make sure the library generated is not a StaticLibrary `MD` (but it's `MT`)
+    # making it compatible with godot.
+    cmake_opts += " -DUSE_STATIC_MSVC_RUNTIME_LIBRARY=1 "
+
+cmake_platform_opts = ""
+
+if env["platform"] == "linuxbsd":
+    compiler = "gcc"
+    cmake_generator_type = '"Unix Makefiles"'
+
+elif env["platform"] == "macos":
+    cmake_generator_type = '"Unix Makefiles"'
+    # Keep the macOS versions in sync with platform/macos/detect.py
+    if env["arch"] == "universal":
+        cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" '
+    elif env["arch"] == "arm64":
+        cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" '
+    elif env["arch"] == "x86_64":
+        cmake_platform_opts += ' -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15" '
+
+elif env["platform"] == "windows":
+    cmake_generator_type = "Ninja"
+
+else:
+    cmake_generator_type = '"Unix Makefiles"'
+    # exit("Error, platform `" + env["platform"] + "` not supported?")
+
+cmake_opts += cmake_platform_opts
+
+cmake_generate_command = "cmake -S {} -B {} -G {} -DCMAKE_BUILD_TYPE={} {}".format(
+    jolt_build_dir, out_build_dir, cmake_generator_type, jolt_build_type, cmake_opts
+)
+cmake_build_command = "cmake --build {} -j {}".format(out_build_dir, cpu_count)
+
+if env.Execute(cmake_generate_command):
+    exit("JoltPhysics Cmake module compilation failed.")
+
+if env.Execute(cmake_build_command):
+    exit("JoltPhysics Make module compilation failed.")
+
+# Move the Jolt library to have the lib suffix Godot is expecting.
+if env["platform"] == "windows":
+    jolt_move_command = "move {}\\{} {}\\{}{}".format(
+        out_build_dir, "Jolt.lib", out_build_dir, "Jolt", env["LIBSUFFIX"]
+    )
+    env.Execute(jolt_move_command)
+
+# Now setup the JoltPhysics module compilation
+pwd = os.getcwd()
+
+jolt_physics_module = env_modules.Clone()
+
+# Define the same MACROS defined on the physics sync module.
+jolt_physics_module.Append(CPPDEFINES=[("JPH_CROSS_PLATFORM_DETERMINISTIC", 1)])
+jolt_physics_module.Append(CPPDEFINES=[("CROSS_PLATFORM_DETERMINISTIC", 1)])
+jolt_physics_module.Append(CPPDEFINES=[("JPH_DOUBLE_PRECISION", 1)])
+jolt_physics_module.Append(CPPDEFINES=[("DOUBLE_PRECISION", 1)])
+jolt_physics_module.Append(CPPDEFINES=[("OBJECT_LAYER_BITS", 32)])
+jolt_physics_module.Append(CPPDEFINES=[("JPH_OBJECT_LAYER_BITS", 32)])
+
+if jolt_build_type == "Debug":
+    # Define some additional macros, automatically defined by Jolt, to make sure the ABI is correct.
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("_DEBUG", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_ENABLE_ASSERTS", 1)])
+    if env["platform"] == "windows":
+        # On Windows, in debug mode, this is enabled too.
+        jolt_physics_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
+
+elif jolt_build_type == "Release":
+    jolt_physics_module.Append(CPPDEFINES=[("NDEBUG", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_PROFILE_ENABLED", 1)])
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+    if env["platform"] == "windows":
+        # On Windows, in debug mode, this is enabled too.
+        jolt_physics_module.Append(CPPDEFINES=[("JPH_FLOATING_POINT_EXCEPTIONS_ENABLED", 1)])
+
+else:
+    jolt_physics_module.Append(CPPDEFINES=[("NDEBUG", 1)])
+    # By default Jolt doesn't enable the debug renderer but this project forces
+    # it to be always on, so this macro is necessary here.
+    jolt_physics_module.Append(CPPDEFINES=[("JPH_DEBUG_RENDERER", 1)])
+
+
+jolt_physics_module.Prepend(CPPPATH=[os.path.join(pwd, "thirdparty", "JoltPhysics")])
+
+env.Append(LIBPATH=[os.path.join(pwd, out_build_dir)])
+env.Append(LIBS=["Jolt"])
+
+# Build the mimalloc static library using CMake
+cmake_opts = ""
+cmake_opts += " -DMI_BUILD_STATIC=ON "
+cmake_opts += " -DMI_BUILD_SHARED=OFF "
+cmake_opts += " -DMI_BUILD_OBJECT=OFF "
+cmake_opts += " -DMI_BUILD_TESTS=OFF "
+cmake_opts += " -DMI_OVERRIDE=OFF "
+if env["platform"] == "windows":
+    cmake_opts += " -DCMAKE_CXX_FLAGS_RELEASE=/MT"
+    cmake_opts += " -DCMAKE_C_FLAGS_RELEASE=/MT"
+    cmake_opts += " -DCMAKE_CC_FLAGS_RELEASE=/MT"
+cmake_opts += cmake_platform_opts
+
+mimalloc_build_dir = os.path.join(".", "thirdparty", "mimalloc")
+out_build_dir = os.path.join(".", "MIMALLOC_BUILD")
+
+cmake_generate_command = "cmake -S {} -B {} -G {} -DCMAKE_BUILD_TYPE={} {}".format(
+    mimalloc_build_dir, out_build_dir, cmake_generator_type, mimalloc_build_type, cmake_opts
+)
+cmake_build_command = "cmake --build {} -j {}".format(out_build_dir, cpu_count)
+
+if env.Execute(cmake_generate_command):
+    exit("Mimalloc CMake Generate module compilation failed.")
+
+if env.Execute(cmake_build_command):
+    exit("Mimalloc CMake Build module compilation failed.")
+
+# Move the Mimalloc library to have the lib suffix Godot is expecting.
+if env["platform"] == "windows":
+    mimalloc_input_file_name = "mimalloc-static.lib"
+    mimalloc_output_file_name = "mimalloc"
+    if mimalloc_build_type == "Debug":
+        mimalloc_input_file_name = "mimalloc-static-debug.lib"
+        mimalloc_output_file_name = "mimalloc"
+
+    jolt_move_command = "move {}\\{} {}\\{}{}".format(
+        out_build_dir, mimalloc_input_file_name, out_build_dir, mimalloc_output_file_name, env["LIBSUFFIX"]
+    )
+    env.Execute(jolt_move_command)
+
+jolt_physics_module.Prepend(CPPPATH=[os.path.join(pwd, "thirdparty", "mimalloc", "include")])
+
+env.Append(LIBPATH=[os.path.join(pwd, out_build_dir)])
+env.Append(LIBS=["mimalloc"])
+
+if "tracy_enable" in env and env["tracy_enable"] == "yes":
+    jolt_physics_module.Append(CPPDEFINES=["TRACY_ENABLE"])
+
+jolt_physics_module.add_source_files(env.modules_sources, "*.cpp")

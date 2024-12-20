@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="Jolt" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="cast_ray" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="world_id" type="int" />
+			<param index="1" name="from" type="Vector3" />
+			<param index="2" name="direction" type="Vector3" />
+			<param index="3" name="distance" type="float" />
+			<param index="4" name="layers_name" type="Array" />
+			<param index="5" name="ignore_bodies" type="Array" default="[]" />
+			<description>
+				A ray in 3D space, used to find the first [JBody3D] it intersects.
+				Returns a dictionary with the following arguments:
+				- has_hit
+				- collider (The JBody3D)
+				- fraction (The normalized percentage of ray distance before hitting the object; Goes from 0 to 1)
+				- shape_id
+				- normal
+				- position
+			</description>
+		</method>
+		<method name="cast_shape" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="world_id" type="int" />
+			<param index="1" name="shape" type="JShape3D" />
+			<param index="2" name="from" type="Transform3D" />
+			<param index="3" name="move" type="Vector3" />
+			<param index="4" name="collide_with_layers" type="Array" />
+			<param index="5" name="ignore_bodies" type="Array" default="[]" />
+			<description>
+				Moves a shape along the move vector in 3D space and returns the list of intersected objects.
+				Returns an [Array] of [Dictionary], each with the following:
+				- body2 (The other hit body)
+				- normal
+				- depth (The penetration depth)
+				- contact_on1 (The contact point, in world space, on the casted shape)
+				- contact_on2 (The contact point, in world space, on the hit collider)
+				- fraction (The normalized percentage of ray distance before hitting the object; Goes from 0 to 1)
+				- is_back_face_hit (True if the hit shape is a concave JMeshShape3D and its backface was hit)
+			</description>
+		</method>
+		<method name="collide_shape" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="world_id" type="int" />
+			<param index="1" name="shape" type="JShape3D" />
+			<param index="2" name="from" type="Transform3D" />
+			<param index="3" name="collide_with_layers" type="Array" />
+			<param index="4" name="ignore_bodies" type="Array" default="[]" />
+			<description>
+				Collides a shape in 3D space and returns the list of intersected objects.
+				Returns an [Array] of [Dictionary], each with the following:
+				- body2 (The other hit body)
+				- normal
+				- depth (The penetration depth)
+				- contact_on1 (The contact point, in world space, on the casted shape)
+				- contact_on2 (The contact point, in world space, on the hit collider)
+			</description>
+		</method>
+		<method name="get_layers_table" qualifiers="const">
+			<return type="JLayersTable" />
+			<description>
+				Returns the [Resource] [JLayersTable] used by Jolt.
+			</description>
+		</method>
+		<method name="high_level_ray_or_shape_cast" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="from" type="Vector3" />
+			<param index="1" name="direction" type="Vector3" />
+			<param index="2" name="length" type="float" />
+			<param index="3" name="sphere_radius" type="float" />
+			<param index="4" name="collide_with_layers" type="Array" default="[]" />
+			<param index="5" name="ignore_bodies" type="Array" default="[]" />
+			<description>
+				High-level wrapper API for [method cast_ray] and [method cast_shape], with the following features:
+				- Can switch between raycasts and shape casts with a single parameter.
+				- Inputs and outputs are the same between raycasts and shape casts.
+				- Inputs and outputs are designed to be high-level and user-friendly.
+				- Only one hit is reported for each colliding body, the closest one.
+				- Results are sorted to have the closest hit be first in the array.
+			</description>
+		</method>
+		<method name="set_layers_table">
+			<return type="void" />
+			<param index="0" name="layers_table" type="JLayersTable" />
+			<description>
+				Set the [Resource] [JLayersTable].
+			</description>
+		</method>
+		<method name="world_process">
+			<return type="void" />
+			<param index="0" name="world_id" type="int" />
+			<param index="1" name="delta" type="float" />
+			<description>
+				Step the physics world of the [param world_id] passed, advancing the time by [param delta]. This is automatically called for the default world (ID: 0).
+			</description>
+		</method>
+	</methods>
+</class>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="JShape3D" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Base class for Jolt 3D shapes.
+	</brief_description>
+	<description>
+		Base class for 3D shapes that can be used with The Mirror Jolt's [JBody3D] node. This is the Jolt version of Godot's [Shape3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="is_convex" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if this shape is convex. All shapes are convex except for [JMeshShape3D] and any compound shapes containing [JMeshShape3D].
+			</description>
+		</method>
+		<method name="make_shape">
+			<return type="void" />
+			<description>
+				Converts the data in this JShape3D resource to a Jolt shape resource.
+			</description>
+		</method>
+	</methods>
+</class>

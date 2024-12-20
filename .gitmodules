@@ -1,0 +1,9 @@
+[submodule "modules/network_synchronizer"]
+	path = modules/network_synchronizer
+	url = https://github.com/GameNetworking/network_synchronizer.git
+[submodule "modules/jolt/thirdparty/JoltPhysics"]
+	path = modules/jolt/thirdparty/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "modules/jolt/thirdparty/mimalloc"]
+	path = modules/jolt/thirdparty/mimalloc
+	url = https://github.com/microsoft/mimalloc.git
